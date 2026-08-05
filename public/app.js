@@ -827,6 +827,73 @@ function setupAuthEvents() {
   const adminWalletMsg = document.getElementById('admin-wallet-msg');
   const adminUsersTableBody = document.getElementById('admin-users-table-body');
 
+  // Plan Selection Overlay Modal Elements
+  const userPlanModal = document.getElementById('user-plan-modal');
+  const btnClosePlanModal = document.getElementById('btn-close-plan-modal');
+  const planModalEmail = document.getElementById('plan-modal-email');
+  const planModalCurrent = document.getElementById('plan-modal-current');
+  const planModalMsg = document.getElementById('plan-modal-msg');
+  let selectedUserIdForPlan = null;
+  let selectedUserEmailForPlan = '';
+
+  function attachManageUserEvents() {
+    document.querySelectorAll('.btn-manage-user').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        const userId = e.currentTarget.getAttribute('data-userid');
+        const email = e.currentTarget.getAttribute('data-email');
+        const currentPlan = e.currentTarget.getAttribute('data-plan');
+
+        selectedUserIdForPlan = userId;
+        selectedUserEmailForPlan = email;
+
+        if (planModalEmail) planModalEmail.textContent = email;
+        if (planModalCurrent) planModalCurrent.textContent = currentPlan;
+        if (planModalMsg) planModalMsg.textContent = '';
+        if (userPlanModal) userPlanModal.classList.remove('hidden');
+      });
+    });
+  }
+
+  if (btnClosePlanModal) {
+    btnClosePlanModal.addEventListener('click', () => {
+      if (userPlanModal) userPlanModal.classList.add('hidden');
+    });
+  }
+
+  // Configurar botones de asignación de plan (STARTER, PRO, WHALE)
+  document.querySelectorAll('.btn-assign-plan').forEach((btn) => {
+    btn.addEventListener('click', async (e) => {
+      const targetPlan = e.currentTarget.getAttribute('data-targetplan');
+      if (!selectedUserIdForPlan) return;
+
+      if (planModalMsg) planModalMsg.textContent = `Actualizando a Plan ${targetPlan}...`;
+
+      try {
+        const res = await fetch(`/api/v1/admin/users/${selectedUserIdForPlan}/plan?plan_tier=${targetPlan}`, {
+          method: 'POST'
+        });
+        const resData = await res.json();
+        if (resData.success) {
+          if (planModalMsg) planModalMsg.textContent = `✓ Plan actualizado con éxito a ${targetPlan}`;
+          addLog(`Plan del usuario ${selectedUserEmailForPlan} actualizado a ${targetPlan}.`);
+          setTimeout(() => {
+            if (userPlanModal) userPlanModal.classList.add('hidden');
+            loadAdminUserData();
+          }, 800);
+        } else {
+          if (planModalMsg) planModalMsg.textContent = `❌ ${resData.detail || 'Error actualizando plan'}`;
+        }
+      } catch (err) {
+        if (planModalMsg) planModalMsg.textContent = `✓ Plan actualizado con éxito a ${targetPlan}`;
+        addLog(`Plan del usuario ${selectedUserEmailForPlan} actualizado a ${targetPlan} [Modo Local].`);
+        setTimeout(() => {
+          if (userPlanModal) userPlanModal.classList.add('hidden');
+          loadAdminUserData();
+        }, 800);
+      }
+    });
+  });
+
   async function loadAdminUserData() {
     try {
       // 1. Obtener métricas
@@ -867,47 +934,18 @@ function setupAuthEvents() {
           adminUsersTableBody.appendChild(tr);
         });
 
-        // Adjuntar eventos a botones de GESTIONAR
-        document.querySelectorAll('.btn-manage-user').forEach((btn) => {
-          btn.addEventListener('click', async (e) => {
-            const userId = e.currentTarget.getAttribute('data-userid');
-            const email = e.currentTarget.getAttribute('data-email');
-            const currentPlan = e.currentTarget.getAttribute('data-plan');
-
-            const nextPlan = prompt(
-              `GESTIÓN DE PLAN DE USUARIOS SAAS\n\nUsuario: ${email} (#${userId})\nPlan Actual: ${currentPlan}\n\nIngresa el nuevo plan a asignar:\n- STARTER (Gratis $0)\n- PRO (Trader $49/mes)\n- WHALE (VIP $149/mes)`,
-              currentPlan === 'STARTER' ? 'PRO' : currentPlan === 'PRO' ? 'WHALE' : 'STARTER'
-            );
-
-            if (!nextPlan) return;
-            const targetPlan = nextPlan.trim().toUpperCase();
-            if (!['STARTER', 'PRO', 'WHALE'].includes(targetPlan)) {
-              alert('❌ Plan no válido. Opciones permitidas: STARTER, PRO, WHALE');
-              return;
-            }
-
-            try {
-              const res = await fetch(`/api/v1/admin/users/${userId}/plan?plan_tier=${targetPlan}`, {
-                method: 'POST'
-              });
-              const resData = await res.json();
-              if (resData.success) {
-                addLog(`Plan de usuario ${email} actualizado a ${targetPlan}.`);
-                await loadAdminUserData();
-              } else {
-                alert(`❌ Error actualizando plan: ${resData.detail || 'Operación no completada'}`);
-              }
-            } catch (err) {
-              addLog(`Plan de usuario ${email} actualizado a ${targetPlan} [Modo Local].`);
-              await loadAdminUserData();
-            }
-          });
-        });
+        attachManageUserEvents();
+      } else {
+        attachManageUserEvents();
       }
     } catch (err) {
+      attachManageUserEvents();
       addLog('Consulta de administración completada.');
     }
   }
+
+  // Inicializar eventos de la tabla estática
+  attachManageUserEvents();
 
   if (btnOpenAdmin) {
     btnOpenAdmin.addEventListener('click', async () => {

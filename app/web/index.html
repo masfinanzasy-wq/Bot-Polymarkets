@@ -244,26 +244,55 @@
                   <td>admin@polymarketm5.com</td>
                   <td><span class="badge vip-tag">WHALE VIP ($149)</span></td>
                   <td><span class="status-badge-win">ACTIVO</span></td>
-                  <td><button class="btn btn-secondary btn-sm">GESTIONAR</button></td>
+                  <td><button class="btn btn-secondary btn-sm btn-manage-user" data-userid="1" data-email="admin@polymarketm5.com" data-plan="WHALE">⚡ CAMBIAR PLAN</button></td>
                 </tr>
                 <tr>
                   <td>#2</td>
                   <td>trader_pro@gmail.com</td>
                   <td><span class="badge popular-tag">PRO TRADER ($49)</span></td>
                   <td><span class="status-badge-win">ACTIVO</span></td>
-                  <td><button class="btn btn-secondary btn-sm">GESTIONAR</button></td>
+                  <td><button class="btn btn-secondary btn-sm btn-manage-user" data-userid="2" data-email="trader_pro@gmail.com" data-plan="PRO">⚡ CAMBIAR PLAN</button></td>
                 </tr>
                 <tr>
                   <td>#3</td>
                   <td>user_demo@hotmail.com</td>
                   <td><span class="badge">STARTER ($0)</span></td>
                   <td><span class="status-badge-open">GRATIS</span></td>
-                  <td><button class="btn btn-secondary btn-sm">SUBIR A PRO</button></td>
+                  <td><button class="btn btn-secondary btn-sm btn-manage-user" data-userid="3" data-email="user_demo@hotmail.com" data-plan="STARTER">⚡ CAMBIAR PLAN</button></td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal Superpuesto de Selección Interactiva de Plan -->
+    <div class="auth-overlay hidden" id="user-plan-modal" style="z-index: 10005;">
+      <div class="glass-card auth-card" style="max-width: 480px; text-align: left; padding: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3 style="font-size: 16px; font-weight: 800; color: var(--accent-cyan);">⚡ GESTIÓN DE PLAN DE USUARIO</h3>
+          <button class="modal-close-btn" id="btn-close-plan-modal">✕</button>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
+          Usuario: <strong id="plan-modal-email" style="color: #fff;">user@example.com</strong>
+        </p>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">
+          Plan Actual: <span class="badge" id="plan-modal-current">STARTER</span>
+        </p>
+        
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <button class="btn btn-secondary btn-full btn-assign-plan" data-targetplan="STARTER">
+            🔵 ASIGNAR PLAN STARTER ($0 / mes)
+          </button>
+          <button class="btn btn-action btn-full btn-assign-plan" data-targetplan="PRO">
+            ⭐ ASIGNAR PLAN PRO TRADER ($49 / mes)
+          </button>
+          <button class="btn btn-tab active btn-full btn-assign-plan" data-targetplan="WHALE">
+            👑 ASIGNAR PLAN WHALE VIP ($149 / mes)
+          </button>
+        </div>
+        <div id="plan-modal-msg" style="margin-top: 14px; font-size: 12px; text-align: center; color: var(--accent-emerald);"></div>
       </div>
     </div>
 
