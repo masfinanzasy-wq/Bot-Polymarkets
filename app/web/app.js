@@ -22,8 +22,8 @@ const state = {
   
   // Portfolio Paper Trading
   portfolio: {
-    initialBalance: 1000.0,
-    currentBalance: 1000.0,
+    initialBalance: 100.0,
+    currentBalance: 100.0,
     realizedPnl: 0.0,
     winningTrades: 0,
     losingTrades: 0,
@@ -585,14 +585,14 @@ function setupEvents() {
   });
 
   el.btnResetPortfolio.addEventListener('click', () => {
-    state.portfolio.currentBalance = 1000.0;
+    state.portfolio.currentBalance = 100.0;
     state.portfolio.realizedPnl = 0.0;
     state.portfolio.winningTrades = 0;
     state.portfolio.losingTrades = 0;
     state.portfolio.activePositions = [];
     state.portfolio.closedPositions = [];
     updatePortfolioUI();
-    addLog('Portfolio simulado reiniciado a $1,000.00 USD.');
+    addLog('Portfolio simulado reiniciado a $100.00 USD.');
   });
 
   el.btnManualYes.addEventListener('click', () => {
