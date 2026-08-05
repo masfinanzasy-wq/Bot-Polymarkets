@@ -52,8 +52,27 @@
           <span class="icon">🛡️</span>
           <span>MODO: <strong id="env-mode-text">PAPER TRADING</strong></span>
         </div>
+        <button class="btn btn-secondary btn-sm" id="btn-logout" style="margin-left: 8px;">🔒 SALIR</button>
       </div>
     </header>
+
+    <!-- Modal de Pantalla de Bloqueo / Clave de Acceso -->
+    <div class="auth-overlay" id="auth-modal">
+      <div class="glass-card auth-card">
+        <div class="auth-icon">🔐</div>
+        <h2>ACCESO RESTRINGIDO</h2>
+        <p class="auth-subtitle">Ingresa la clave de acceso para desbloquear el Dashboard de Trading</p>
+
+        <form id="auth-form" onsubmit="return false;">
+          <div class="form-group-vertical">
+            <label for="input-auth-key">Clave de Acceso:</label>
+            <input type="password" id="input-auth-key" placeholder="••••••••••••" class="input-field-auth" required />
+          </div>
+          <div class="auth-error-msg" id="auth-error-msg"></div>
+          <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-auth">INGRESAR A LA PLATAFORMA</button>
+        </form>
+      </div>
+    </div>
 
     <!-- Top KPI Cards -->
     <section class="kpi-grid">

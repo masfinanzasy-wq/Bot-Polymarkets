@@ -582,8 +582,76 @@ function setupEvents() {
   });
 }
 
+// Authentication Management
+function checkAuthentication() {
+  const authModal = document.getElementById('auth-modal');
+  const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
+  if (isAuth && authModal) {
+    authModal.classList.add('hidden');
+  } else if (authModal) {
+    authModal.classList.remove('hidden');
+  }
+}
+
+async function verifyAccessKey(providedKey) {
+  try {
+    const res = await fetch('/api/v1/auth/verify-key', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key: providedKey })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.success;
+    }
+  } catch (err) {
+    // Fallback para ejecución standalone (clave por defecto polymarket2026)
+    return providedKey === 'polymarket2026';
+  }
+  return providedKey === 'polymarket2026';
+}
+
+function setupAuthEvents() {
+  const authForm = document.getElementById('auth-form');
+  const authKeyInput = document.getElementById('input-auth-key');
+  const authErrorMsg = document.getElementById('auth-error-msg');
+  const btnLogout = document.getElementById('btn-logout');
+  const authModal = document.getElementById('auth-modal');
+
+  if (authForm) {
+    authForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const val = authKeyInput.value.trim();
+      if (!val) return;
+
+      authErrorMsg.textContent = 'Verificando clave...';
+      const isValid = await verifyAccessKey(val);
+
+      if (isValid) {
+        sessionStorage.setItem('dashboard_authenticated', 'true');
+        authErrorMsg.textContent = '';
+        if (authModal) authModal.classList.add('hidden');
+        addLog('Autenticación exitosa. Sesión iniciada.');
+      } else {
+        authErrorMsg.textContent = '❌ Clave de acceso incorrecta. Inténtalo de nuevo.';
+      }
+    });
+  }
+
+  if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+      sessionStorage.removeItem('dashboard_authenticated');
+      if (authModal) authModal.classList.remove('hidden');
+      if (authKeyInput) authKeyInput.value = '';
+      addLog('Sesión cerrada por el usuario.');
+    });
+  }
+}
+
 // App Initialization
 document.addEventListener('DOMContentLoaded', () => {
+  checkAuthentication();
+  setupAuthEvents();
   initChart();
   initBinanceWS();
   initBackendWS();

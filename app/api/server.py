@@ -132,6 +132,16 @@ async def serve_css():
 async def serve_js():
     return FileResponse(str(WEB_DIR / "app.js"))
 
+@app.post("/api/v1/auth/verify-key")
+async def verify_access_key(payload: dict):
+    """Verifica si la clave de acceso ingresada coincide con la clave configurada."""
+    provided_key = payload.get("key", "")
+    expected_key = settings.DASHBOARD_ACCESS_KEY
+    if provided_key == expected_key:
+        return {"success": True, "message": "Acceso concedido"}
+    return JSONResponse({"success": False, "message": "Clave de acceso incorrecta"}, status_code=401)
+
+
 @app.get("/api/v1/health")
 async def health_check():
     """Endpoint de estado de salud del sistema."""
