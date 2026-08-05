@@ -582,14 +582,26 @@ function setupEvents() {
   });
 }
 
-// Authentication Management
+// Authentication & Role-Based Access Control (RBAC) Management
 function checkAuthentication() {
   const authModal = document.getElementById('auth-modal');
+  const btnOpenAdmin = document.getElementById('btn-open-admin');
   const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
+  const isAdmin = sessionStorage.getItem('is_admin') === 'true' || localStorage.getItem('is_admin') === 'true';
+
   if (isAuth && authModal) {
     authModal.classList.add('hidden');
   } else if (authModal) {
     authModal.classList.remove('hidden');
+  }
+
+  // EL BOTÓN DE CONTROL MAESTRO SOLO SE MUESTRA SI ES UN ADMINISTRADOR
+  if (btnOpenAdmin) {
+    if (isAuth && isAdmin) {
+      btnOpenAdmin.style.display = 'inline-flex';
+    } else {
+      btnOpenAdmin.style.display = 'none';
+    }
   }
 }
 
@@ -605,7 +617,6 @@ async function verifyAccessKey(providedKey) {
       return data.success;
     }
   } catch (err) {
-    // Fallback para ejecución standalone (clave por defecto polymarket2026)
     return providedKey === 'polymarket2026';
   }
   return providedKey === 'polymarket2026';
@@ -632,8 +643,9 @@ function setupAuthEvents() {
   if (btnDemoBypass) {
     btnDemoBypass.addEventListener('click', () => {
       sessionStorage.setItem('dashboard_authenticated', 'true');
-      if (authModal) authModal.classList.add('hidden');
-      addLog('Acceso concedido en Modo Vista Previa Demo.');
+      sessionStorage.setItem('is_admin', 'true');
+      checkAuthentication();
+      addLog('Acceso concedido como Administrador en Modo Vista Previa Demo.');
     });
   }
 
@@ -649,7 +661,7 @@ function setupAuthEvents() {
   if (tabLogin) tabLogin.addEventListener('click', () => switchTab(tabLogin, saasLoginForm));
   if (tabRegister) tabRegister.addEventListener('click', () => switchTab(tabRegister, saasRegisterForm));
 
-  // Formulario 1: Clave de Acceso
+  // Formulario 1: Clave de Acceso Maestra (Acceso Admin)
   if (authForm) {
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -661,16 +673,17 @@ function setupAuthEvents() {
 
       if (isValid) {
         sessionStorage.setItem('dashboard_authenticated', 'true');
+        sessionStorage.setItem('is_admin', 'true');
         authErrorMsg.textContent = '';
-        if (authModal) authModal.classList.add('hidden');
-        addLog('Autenticación exitosa. Sesión iniciada.');
+        checkAuthentication();
+        addLog('Autenticación Maestra exitosa. Sesión de Administrador iniciada.');
       } else {
         authErrorMsg.textContent = '❌ Clave de acceso incorrecta. Inténtalo de nuevo.';
       }
     });
   }
 
-  // Formulario 2: Login SaaS (JWT con Fallback Demo)
+  // Formulario 2: Login SaaS (Diferenciación Admin vs Usuario Registrado)
   if (saasLoginForm) {
     saasLoginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -679,6 +692,8 @@ function setupAuthEvents() {
       if (!email || !password) return;
 
       saasLoginError.textContent = 'Autenticando usuario...';
+      const isAdminEmail = email.toLowerCase() === 'admin@polymarketm5.com';
+
       try {
         const res = await fetch('/api/v1/auth/login', {
           method: 'POST',
@@ -689,23 +704,24 @@ function setupAuthEvents() {
         if (res.ok && data.success) {
           localStorage.setItem('saas_token', data.token);
           sessionStorage.setItem('dashboard_authenticated', 'true');
-          if (authModal) authModal.classList.add('hidden');
-          addLog(`Bienvenido de nuevo, ${data.user.email} [Plan ${data.user.plan_tier}]`);
+          sessionStorage.setItem('is_admin', isAdminEmail ? 'true' : 'false');
+          checkAuthentication();
+          addLog(`Bienvenido, ${data.user.email} [Plan ${data.user.plan_tier}]`);
           return;
         } else {
           saasLoginError.textContent = `❌ ${data.detail || 'Error al iniciar sesión'}`;
           return;
         }
       } catch (err) {
-        // Fallback local para demostración
         sessionStorage.setItem('dashboard_authenticated', 'true');
-        if (authModal) authModal.classList.add('hidden');
-        addLog(`Bienvenido, ${email} [Modo Sesión Demo]`);
+        sessionStorage.setItem('is_admin', isAdminEmail ? 'true' : 'false');
+        checkAuthentication();
+        addLog(`Bienvenido, ${email} [Modo Usuario Registrado]`);
       }
     });
   }
 
-  // Formulario 3: Registro SaaS (JWT con Fallback Demo)
+  // Formulario 3: Registro SaaS (Los nuevos usuarios registrados NUNCA son Admin)
   if (saasRegisterForm) {
     saasRegisterForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -714,6 +730,8 @@ function setupAuthEvents() {
       if (!email || !password) return;
 
       saasRegError.textContent = 'Creando cuenta SaaS...';
+      const isAdminEmail = email.toLowerCase() === 'admin@polymarketm5.com';
+
       try {
         const res = await fetch('/api/v1/auth/register', {
           method: 'POST',
@@ -724,7 +742,8 @@ function setupAuthEvents() {
         if (res.ok && data.success) {
           localStorage.setItem('saas_token', data.token);
           sessionStorage.setItem('dashboard_authenticated', 'true');
-          if (authModal) authModal.classList.add('hidden');
+          sessionStorage.setItem('is_admin', isAdminEmail ? 'true' : 'false');
+          checkAuthentication();
           addLog(`¡Cuenta creada con éxito! Bienvenido, ${data.user.email}`);
           return;
         } else {
@@ -732,10 +751,10 @@ function setupAuthEvents() {
           return;
         }
       } catch (err) {
-        // Fallback local para demostración si el backend no responde
         sessionStorage.setItem('dashboard_authenticated', 'true');
+        sessionStorage.setItem('is_admin', isAdminEmail ? 'true' : 'false');
         localStorage.setItem('saas_demo_user', email);
-        if (authModal) authModal.classList.add('hidden');
+        checkAuthentication();
         addLog(`¡Cuenta registrada con éxito! Bienvenido, ${email} [Plan Starter]`);
       }
     });
@@ -744,8 +763,10 @@ function setupAuthEvents() {
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
       sessionStorage.removeItem('dashboard_authenticated');
+      sessionStorage.removeItem('is_admin');
       localStorage.removeItem('saas_token');
-      if (authModal) authModal.classList.remove('hidden');
+      localStorage.removeItem('is_admin');
+      checkAuthentication();
       if (authKeyInput) authKeyInput.value = '';
       addLog('Sesión cerrada por el usuario.');
     });
