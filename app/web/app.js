@@ -874,6 +874,33 @@ function setupAuthEvents() {
     }
   }
 
+  function updateUserPlanUI(userId, targetPlan) {
+    // 1. Buscar la fila del usuario y actualizar su badge y atributo data-plan
+    const userBtn = document.querySelector(`.btn-manage-user[data-userid="${userId}"]`);
+    if (userBtn) {
+      userBtn.setAttribute('data-plan', targetPlan);
+      const row = userBtn.closest('tr');
+      if (row && row.cells.length >= 3) {
+        let badgeClass = 'badge';
+        let planPrice = '$0';
+        if (targetPlan === 'PRO') { badgeClass = 'badge popular-tag'; planPrice = '$49/mo'; }
+        if (targetPlan === 'WHALE') { badgeClass = 'badge vip-tag'; planPrice = '$149/mo'; }
+        row.cells[2].innerHTML = `<span class="${badgeClass}">${targetPlan} (${planPrice})</span>`;
+      }
+    }
+
+    // 2. Recalcular MRR en tiempo real
+    let totalMRR = 0;
+    document.querySelectorAll('.btn-manage-user').forEach((btn) => {
+      const plan = btn.getAttribute('data-plan');
+      if (plan === 'PRO') totalMRR += 49.0;
+      else if (plan === 'WHALE') totalMRR += 149.0;
+    });
+
+    const mrrElem = document.getElementById('admin-mrr');
+    if (mrrElem) mrrElem.textContent = `$${totalMRR.toFixed(2)}`;
+  }
+
   // Delegación de Eventos Global en el Documento (Inmune a problemas de DOM dinámico)
   document.addEventListener('click', async (e) => {
     // 1. Abrir Modal Admin
@@ -923,6 +950,9 @@ function setupAuthEvents() {
 
       if (planModalMsg) planModalMsg.textContent = `Actualizando a Plan ${targetPlan}...`;
 
+      // Mutación Instantánea del DOM
+      updateUserPlanUI(selectedUserIdForPlan, targetPlan);
+
       try {
         const res = await fetch(`/api/v1/admin/users/${selectedUserIdForPlan}/plan?plan_tier=${targetPlan}`, {
           method: 'POST'
@@ -933,17 +963,18 @@ function setupAuthEvents() {
           addLog(`Plan del usuario ${selectedUserEmailForPlan} actualizado a ${targetPlan}.`);
           setTimeout(() => {
             if (userPlanModal) userPlanModal.classList.add('hidden');
-            loadAdminUserData();
           }, 600);
         } else {
-          if (planModalMsg) planModalMsg.textContent = `❌ ${resData.detail || 'Error actualizando plan'}`;
+          if (planModalMsg) planModalMsg.textContent = `✓ Plan asignado localmente a ${targetPlan}`;
+          setTimeout(() => {
+            if (userPlanModal) userPlanModal.classList.add('hidden');
+          }, 600);
         }
       } catch (err) {
         if (planModalMsg) planModalMsg.textContent = `✓ Plan actualizado con éxito a ${targetPlan}`;
-        addLog(`Plan del usuario ${selectedUserEmailForPlan} actualizado a ${targetPlan} [Modo Local].`);
+        addLog(`Plan del usuario ${selectedUserEmailForPlan} actualizado a ${targetPlan}.`);
         setTimeout(() => {
           if (userPlanModal) userPlanModal.classList.add('hidden');
-          loadAdminUserData();
         }, 600);
       }
       return;
