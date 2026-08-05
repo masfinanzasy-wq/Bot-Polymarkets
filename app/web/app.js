@@ -835,14 +835,28 @@ function setupAuthEvents() {
       const tr = document.createElement('tr');
       let badgeClass = 'badge';
       let planPrice = '$0';
-      if (user.plan_tier === 'PRO') { badgeClass = 'badge popular-tag'; planPrice = '$49/mo'; totalMRR += 49.0; }
-      else if (user.plan_tier === 'WHALE') { badgeClass = 'badge vip-tag'; planPrice = '$149/mo'; totalMRR += 149.0; }
+      let statusBadgeClass = 'status-badge-open';
+      let statusText = 'GRATIS ($0)';
+
+      if (user.plan_tier === 'PRO') {
+        badgeClass = 'badge popular-tag';
+        planPrice = '$49/mo';
+        statusBadgeClass = 'status-badge-win';
+        statusText = 'PRO ACTIVO ($49)';
+        totalMRR += 49.0;
+      } else if (user.plan_tier === 'WHALE') {
+        badgeClass = 'badge vip-tag';
+        planPrice = '$149/mo';
+        statusBadgeClass = 'status-badge-win';
+        statusText = 'WHALE VIP ($149)';
+        totalMRR += 149.0;
+      }
 
       tr.innerHTML = `
         <td>#${user.id}</td>
         <td>${user.email}</td>
         <td><span class="${badgeClass}">${user.plan_tier} (${planPrice})</span></td>
-        <td><span class="status-badge-win">ACTIVO</span></td>
+        <td><span class="${statusBadgeClass}">${statusText}</span></td>
         <td>
           <button type="button" class="btn btn-secondary btn-sm btn-manage-user" data-userid="${user.id}" data-email="${user.email}" data-plan="${user.plan_tier}">
             ⚡ CAMBIAR PLAN
