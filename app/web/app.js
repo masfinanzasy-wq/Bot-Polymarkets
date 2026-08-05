@@ -613,11 +613,34 @@ async function verifyAccessKey(providedKey) {
 
 function setupAuthEvents() {
   const authForm = document.getElementById('auth-form');
+  const saasLoginForm = document.getElementById('saas-login-form');
+  const saasRegisterForm = document.getElementById('saas-register-form');
+
+  const tabAccess = document.getElementById('tab-btn-access');
+  const tabLogin = document.getElementById('tab-btn-login');
+  const tabRegister = document.getElementById('tab-btn-register');
+
   const authKeyInput = document.getElementById('input-auth-key');
   const authErrorMsg = document.getElementById('auth-error-msg');
+  const saasLoginError = document.getElementById('saas-login-error');
+  const saasRegError = document.getElementById('saas-reg-error');
+
   const btnLogout = document.getElementById('btn-logout');
   const authModal = document.getElementById('auth-modal');
 
+  // Alternar pestañas del modal SaaS
+  function switchTab(activeBtn, activeForm) {
+    [tabAccess, tabLogin, tabRegister].forEach(btn => btn && btn.classList.remove('active'));
+    [authForm, saasLoginForm, saasRegisterForm].forEach(form => form && form.classList.remove('active'));
+    if (activeBtn) activeBtn.classList.add('active');
+    if (activeForm) activeForm.classList.add('active');
+  }
+
+  if (tabAccess) tabAccess.addEventListener('click', () => switchTab(tabAccess, authForm));
+  if (tabLogin) tabLogin.addEventListener('click', () => switchTab(tabLogin, saasLoginForm));
+  if (tabRegister) tabRegister.addEventListener('click', () => switchTab(tabRegister, saasRegisterForm));
+
+  // Formulario 1: Clave de Acceso
   if (authForm) {
     authForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -638,9 +661,70 @@ function setupAuthEvents() {
     });
   }
 
+  // Formulario 2: Login SaaS (JWT)
+  if (saasLoginForm) {
+    saasLoginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('input-saas-email').value.trim();
+      const password = document.getElementById('input-saas-password').value;
+      if (!email || !password) return;
+
+      saasLoginError.textContent = 'Autenticando usuario...';
+      try {
+        const res = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          localStorage.setItem('saas_token', data.token);
+          sessionStorage.setItem('dashboard_authenticated', 'true');
+          if (authModal) authModal.classList.add('hidden');
+          addLog(`Bienvenido de nuevo, ${data.user.email} [Plan ${data.user.plan_tier}]`);
+        } else {
+          saasLoginError.textContent = `❌ ${data.detail || 'Error al iniciar sesión'}`;
+        }
+      } catch (err) {
+        saasLoginError.textContent = '❌ Error de conexión con el servidor.';
+      }
+    });
+  }
+
+  // Formulario 3: Registro SaaS (JWT)
+  if (saasRegisterForm) {
+    saasRegisterForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('input-reg-email').value.trim();
+      const password = document.getElementById('input-reg-password').value;
+      if (!email || !password) return;
+
+      saasRegError.textContent = 'Creando cuenta SaaS...';
+      try {
+        const res = await fetch('/api/v1/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+          localStorage.setItem('saas_token', data.token);
+          sessionStorage.setItem('dashboard_authenticated', 'true');
+          if (authModal) authModal.classList.add('hidden');
+          addLog(`¡Cuenta creada con éxito! Bienvenido, ${data.user.email}`);
+        } else {
+          saasRegError.textContent = `❌ ${data.detail || 'Error en el registro'}`;
+        }
+      } catch (err) {
+        saasRegError.textContent = '❌ Error de conexión con el servidor.';
+      }
+    });
+  }
+
   if (btnLogout) {
     btnLogout.addEventListener('click', () => {
       sessionStorage.removeItem('dashboard_authenticated');
+      localStorage.removeItem('saas_token');
       if (authModal) authModal.classList.remove('hidden');
       if (authKeyInput) authKeyInput.value = '';
       addLog('Sesión cerrada por el usuario.');

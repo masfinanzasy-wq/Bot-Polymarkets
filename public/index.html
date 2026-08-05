@@ -56,20 +56,56 @@
       </div>
     </header>
 
-    <!-- Modal de Pantalla de Bloqueo / Clave de Acceso -->
+    <!-- Modal de Pantalla de Bloqueo / Clave de Acceso y SaaS Auth -->
     <div class="auth-overlay" id="auth-modal">
       <div class="glass-card auth-card">
         <div class="auth-icon">🔐</div>
-        <h2>ACCESO RESTRINGIDO</h2>
-        <p class="auth-subtitle">Ingresa la clave de acceso para desbloquear el Dashboard de Trading</p>
+        <h2>ACCESO A LA PLATAFORMA SAAS</h2>
+        <p class="auth-subtitle">Polymarket M5 Bot - Predictive Trading Platform</p>
 
-        <form id="auth-form" onsubmit="return false;">
+        <!-- Dynamic Auth Tabs -->
+        <div class="auth-tabs">
+          <button class="auth-tab-btn active" id="tab-btn-access">Clave de Acceso</button>
+          <button class="auth-tab-btn" id="tab-btn-login">Iniciar Sesión</button>
+          <button class="auth-tab-btn" id="tab-btn-register">Registrarse</button>
+        </div>
+
+        <!-- Formulario 1: Clave de Acceso por Defecto -->
+        <form id="auth-form" class="auth-form-panel active" onsubmit="return false;">
           <div class="form-group-vertical">
-            <label for="input-auth-key">Clave de Acceso:</label>
+            <label for="input-auth-key">Clave de Acceso al Dashboard:</label>
             <input type="password" id="input-auth-key" placeholder="••••••••••••" class="input-field-auth" required />
           </div>
           <div class="auth-error-msg" id="auth-error-msg"></div>
           <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-auth">INGRESAR A LA PLATAFORMA</button>
+        </form>
+
+        <!-- Formulario 2: Login de Usuario SaaS -->
+        <form id="saas-login-form" class="auth-form-panel" onsubmit="return false;">
+          <div class="form-group-vertical">
+            <label for="input-saas-email">Correo Electrónico:</label>
+            <input type="email" id="input-saas-email" placeholder="tu@email.com" class="input-field-auth" />
+          </div>
+          <div class="form-group-vertical">
+            <label for="input-saas-password">Contraseña:</label>
+            <input type="password" id="input-saas-password" placeholder="••••••••••••" class="input-field-auth" />
+          </div>
+          <div class="auth-error-msg" id="saas-login-error"></div>
+          <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-saas-login">INICIAR SESIÓN SAAS</button>
+        </form>
+
+        <!-- Formulario 3: Registro de Usuario SaaS -->
+        <form id="saas-register-form" class="auth-form-panel" onsubmit="return false;">
+          <div class="form-group-vertical">
+            <label for="input-reg-email">Correo Electrónico:</label>
+            <input type="email" id="input-reg-email" placeholder="tu@email.com" class="input-field-auth" />
+          </div>
+          <div class="form-group-vertical">
+            <label for="input-reg-password">Contraseña:</label>
+            <input type="password" id="input-reg-password" placeholder="Mínimo 6 caracteres" class="input-field-auth" />
+          </div>
+          <div class="auth-error-msg" id="saas-reg-error"></div>
+          <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-saas-register">CREAR CUENTA SAAS</button>
         </form>
       </div>
     </div>
