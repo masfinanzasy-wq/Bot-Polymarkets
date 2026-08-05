@@ -3,12 +3,46 @@ Modelos ORM de SQLAlchemy para PostgreSQL.
 Tablas de snapshots de métricas, señales de predicción y registro de operaciones.
 """
 from datetime import datetime
-from sqlalchemy import String, Float, Integer, Boolean, Text, DateTime, Column
-from sqlalchemy.orm import DeclarativeBase
+from sqlalchemy import String, Float, Integer, Boolean, Text, DateTime, Column, ForeignKey
+from sqlalchemy.orm import DeclarativeBase, relationship
 
 
 class Base(DeclarativeBase):
     pass
+
+
+class UserModel(Base):
+    """
+    Tabla de usuarios para la plataforma SaaS Multi-Tenant.
+    """
+    __tablename__ = "users"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    email = Column(String(120), unique=True, nullable=False, index=True)
+    password_hash = Column(String(256), nullable=False)
+    role = Column(String(20), nullable=False, default="USER")  # ADMIN, USER
+    plan_tier = Column(String(20), nullable=False, default="STARTER")  # STARTER, PRO, WHALE
+    is_active = Column(Boolean, nullable=False, default=True)
+    telegram_chat_id = Column(String(50), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    wallets = relationship("UserWalletModel", back_populates="user", cascade="all, delete-orphan")
+
+
+class UserWalletModel(Base):
+    """
+    Bóveda de billeteras cifradas por usuario (Polygon Private Keys encriptadas con AES-256).
+    """
+    __tablename__ = "user_wallets"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    polygon_address = Column(String(64), nullable=True)
+    encrypted_private_key = Column(Text, nullable=False)
+    is_active = Column(Boolean, nullable=False, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("UserModel", back_populates="wallets")
 
 
 class MetricSnapshotModel(Base):
