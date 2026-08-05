@@ -16,6 +16,7 @@ if sys.platform == "win32":
 
 from app.config import settings, ConfigValidator, get_settings_for_env
 from app.logger.logger import sys_logger
+from app.api.server import app  # Exportar app para compatibilidad con Vercel Serverless
 
 
 async def main() -> None:
