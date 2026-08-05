@@ -120,8 +120,14 @@ async def live_data_broadcaster():
 
         await manager.broadcast(payload)
 
+from app.database.connection import init_db
+
 @app.on_event("startup")
 async def startup_event():
+    try:
+        await init_db()
+    except Exception as err:
+        sys_logger.error(f"Error al inicializar tablas en base de datos: {err}")
     asyncio.create_task(live_data_broadcaster())
 
 @app.get("/", response_class=FileResponse)
