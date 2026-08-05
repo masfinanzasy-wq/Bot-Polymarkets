@@ -520,11 +520,12 @@ async function checkSystemHealth() {
 
 // Connect Backend FastAPI Live WebSocket
 function initBackendWS() {
-  const wsUrl = `ws://${window.location.host}/api/ws/live`;
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const wsUrl = `${protocol}//${window.location.host}/ws/live`;
   try {
     const ws = new WebSocket(wsUrl);
     ws.onopen = () => {
-      addLog('Conectado al Servidor FastAPI WebSocket [/api/ws/live].');
+      addLog('Conectado al Servidor FastAPI WebSocket [/ws/live].');
     };
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
