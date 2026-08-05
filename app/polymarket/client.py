@@ -144,3 +144,53 @@ class PolymarketClient:
                 return float(mid) if mid is not None else None
         except Exception:
             return None
+
+    async def place_live_order(
+        self,
+        token_id: str,
+        price: float,
+        size_usd: float,
+        side: str = "BUY",
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Firma y envía una orden real a la Polymarket CLOB en la blockchain de Polygon (Modo Real).
+        Requiere POLYMARKET_PRIVATE_KEY y PAPER_TRADING=False.
+        """
+        if settings.PAPER_TRADING:
+            sys_logger.warning("place_live_order llamado mientras PAPER_TRADING=True. Ignorando orden real.")
+            return None
+
+        if not settings.POLYMARKET_PRIVATE_KEY or settings.POLYMARKET_PRIVATE_KEY == "your_polygon_private_key_here":
+            sys_logger.error("No se puede enviar orden real: POLYMARKET_PRIVATE_KEY no configurada en .env.")
+            return None
+
+        try:
+            # Intento de importar ClobClient si está instalado
+            from py_clob_client.client import ClobClient
+            from py_clob_client.clob_types import OrderArgs
+
+            client = ClobClient(
+                host=self.CLOB_API_URL,
+                key=settings.POLYMARKET_PRIVATE_KEY,
+                chain_id=settings.POLYMARKET_CHAIN_ID,
+            )
+
+            # Crear firma y enviar orden de tipo GTC (Good 'Til Cancelled)
+            order_args = OrderArgs(
+                price=price,
+                size=size_usd / price if price > 0 else 0.0,
+                side=side,
+                token_id=token_id,
+            )
+            signed_order = client.create_order(order_args)
+            response = client.post_order(signed_order)
+
+            sys_logger.info(f"ORDEN REAL ENVIADA AL CLOB: ID={response.get('orderID')} | {side} {token_id[:8]}... @ ${price:.4f}")
+            return response
+
+        except ImportError:
+            sys_logger.error("La librería py-clob-client no está instalada. Instálala ejecutando: pip install py-clob-client")
+            return None
+        except Exception as e:
+            sys_logger.error(f"Error al enviar orden real al CLOB de Polymarket: {e}")
+            return None
