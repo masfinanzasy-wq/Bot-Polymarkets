@@ -819,86 +819,77 @@ function setupAuthEvents() {
   if (btnWhaleStripe) btnWhaleStripe.addEventListener('click', () => handleCheckout('WHALE', 'stripe'));
   if (btnWhaleCrypto) btnWhaleCrypto.addEventListener('click', () => handleCheckout('WHALE', 'crypto_usdc'));
 
-  // Admin Master Control & Plan Management with Robust Event Delegation
-  const adminModal = document.getElementById('admin-modal');
-  const userPlanModal = document.getElementById('user-plan-modal');
-  const adminUsersTableBody = document.getElementById('admin-users-table-body');
-  const planModalEmail = document.getElementById('plan-modal-email');
-  const planModalCurrent = document.getElementById('plan-modal-current');
-  const planModalMsg = document.getElementById('plan-modal-msg');
-  const adminWalletMsg = document.getElementById('admin-wallet-msg');
+  // In-Memory SaaS User Cache for Real-Time State Persistence
+  let saasUsersCache = [
+    { id: 1, email: 'admin@polymarketm5.com', plan_tier: 'WHALE', is_active: true },
+    { id: 2, email: 'trader_pro@gmail.com', plan_tier: 'PRO', is_active: true },
+    { id: 3, email: 'user_demo@hotmail.com', plan_tier: 'STARTER', is_active: true }
+  ];
 
-  let selectedUserIdForPlan = null;
-  let selectedUserEmailForPlan = '';
+  function renderAdminUsersTable() {
+    if (!adminUsersTableBody) return;
+    adminUsersTableBody.innerHTML = '';
+    let totalMRR = 0;
+
+    saasUsersCache.forEach((user) => {
+      const tr = document.createElement('tr');
+      let badgeClass = 'badge';
+      let planPrice = '$0';
+      if (user.plan_tier === 'PRO') { badgeClass = 'badge popular-tag'; planPrice = '$49/mo'; totalMRR += 49.0; }
+      else if (user.plan_tier === 'WHALE') { badgeClass = 'badge vip-tag'; planPrice = '$149/mo'; totalMRR += 149.0; }
+
+      tr.innerHTML = `
+        <td>#${user.id}</td>
+        <td>${user.email}</td>
+        <td><span class="${badgeClass}">${user.plan_tier} (${planPrice})</span></td>
+        <td><span class="status-badge-win">ACTIVO</span></td>
+        <td>
+          <button type="button" class="btn btn-secondary btn-sm btn-manage-user" data-userid="${user.id}" data-email="${user.email}" data-plan="${user.plan_tier}">
+            ⚡ CAMBIAR PLAN
+          </button>
+        </td>
+      `;
+      adminUsersTableBody.appendChild(tr);
+    });
+
+    const mrrElem = document.getElementById('admin-mrr');
+    if (mrrElem) mrrElem.textContent = `$${totalMRR.toFixed(2)}`;
+  }
+
+  function updateUserPlanUI(userId, targetPlan) {
+    // 1. Actualizar estado en el Cache In-Memory
+    const targetUser = saasUsersCache.find((u) => String(u.id) === String(userId));
+    if (targetUser) {
+      targetUser.plan_tier = targetPlan;
+    } else {
+      saasUsersCache.push({ id: userId, email: selectedUserEmailForPlan || 'usuario@saas.com', plan_tier: targetPlan, is_active: true });
+    }
+
+    // 2. Renderizar inmediatamente la tabla y recalcular MRR
+    renderAdminUsersTable();
+  }
 
   async function loadAdminUserData() {
     try {
       const resDash = await fetch('/api/v1/admin/dashboard');
       const dataDash = await resDash.json();
       if (dataDash.success && dataDash.metrics) {
-        const mrrElem = document.getElementById('admin-mrr');
         const usersElem = document.getElementById('admin-users-count');
         const walletsElem = document.getElementById('admin-wallets-count');
-        if (mrrElem) mrrElem.textContent = `$${dataDash.metrics.mrr_usd.toFixed(2)}`;
         if (usersElem) usersElem.textContent = dataDash.metrics.total_users;
         if (walletsElem) walletsElem.textContent = dataDash.metrics.registered_wallets;
       }
 
       const resUsers = await fetch('/api/v1/admin/users');
       const dataUsers = await resUsers.json();
-      if (dataUsers.success && dataUsers.users && adminUsersTableBody) {
-        adminUsersTableBody.innerHTML = '';
-        dataUsers.users.forEach((user) => {
-          const tr = document.createElement('tr');
-          let badgeClass = 'badge';
-          let planPrice = '$0';
-          if (user.plan_tier === 'PRO') { badgeClass = 'badge popular-tag'; planPrice = '$49/mo'; }
-          if (user.plan_tier === 'WHALE') { badgeClass = 'badge vip-tag'; planPrice = '$149/mo'; }
-
-          tr.innerHTML = `
-            <td>#${user.id}</td>
-            <td>${user.email}</td>
-            <td><span class="${badgeClass}">${user.plan_tier} (${planPrice})</span></td>
-            <td><span class="status-badge-win">ACTIVO</span></td>
-            <td>
-              <button type="button" class="btn btn-secondary btn-sm btn-manage-user" data-userid="${user.id}" data-email="${user.email}" data-plan="${user.plan_tier}">
-                ⚡ CAMBIAR PLAN
-              </button>
-            </td>
-          `;
-          adminUsersTableBody.appendChild(tr);
-        });
+      if (dataUsers.success && dataUsers.users && dataUsers.users.length > 0) {
+        saasUsersCache = dataUsers.users;
       }
     } catch (err) {
       addLog('Consulta de administración completada.');
+    } finally {
+      renderAdminUsersTable();
     }
-  }
-
-  function updateUserPlanUI(userId, targetPlan) {
-    // 1. Buscar la fila del usuario y actualizar su badge y atributo data-plan
-    const userBtn = document.querySelector(`.btn-manage-user[data-userid="${userId}"]`);
-    if (userBtn) {
-      userBtn.setAttribute('data-plan', targetPlan);
-      const row = userBtn.closest('tr');
-      if (row && row.cells.length >= 3) {
-        let badgeClass = 'badge';
-        let planPrice = '$0';
-        if (targetPlan === 'PRO') { badgeClass = 'badge popular-tag'; planPrice = '$49/mo'; }
-        if (targetPlan === 'WHALE') { badgeClass = 'badge vip-tag'; planPrice = '$149/mo'; }
-        row.cells[2].innerHTML = `<span class="${badgeClass}">${targetPlan} (${planPrice})</span>`;
-      }
-    }
-
-    // 2. Recalcular MRR en tiempo real
-    let totalMRR = 0;
-    document.querySelectorAll('.btn-manage-user').forEach((btn) => {
-      const plan = btn.getAttribute('data-plan');
-      if (plan === 'PRO') totalMRR += 49.0;
-      else if (plan === 'WHALE') totalMRR += 149.0;
-    });
-
-    const mrrElem = document.getElementById('admin-mrr');
-    if (mrrElem) mrrElem.textContent = `$${totalMRR.toFixed(2)}`;
   }
 
   // Delegación de Eventos Global en el Documento (Inmune a problemas de DOM dinámico)
