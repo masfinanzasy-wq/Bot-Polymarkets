@@ -626,7 +626,16 @@ function setupAuthEvents() {
   const saasRegError = document.getElementById('saas-reg-error');
 
   const btnLogout = document.getElementById('btn-logout');
+  const btnDemoBypass = document.getElementById('btn-demo-bypass');
   const authModal = document.getElementById('auth-modal');
+
+  if (btnDemoBypass) {
+    btnDemoBypass.addEventListener('click', () => {
+      sessionStorage.setItem('dashboard_authenticated', 'true');
+      if (authModal) authModal.classList.add('hidden');
+      addLog('Acceso concedido en Modo Vista Previa Demo.');
+    });
+  }
 
   // Alternar pestañas del modal SaaS
   function switchTab(activeBtn, activeForm) {
