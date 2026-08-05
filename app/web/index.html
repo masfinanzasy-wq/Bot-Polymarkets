@@ -53,6 +53,7 @@
           <span>MODO: <strong id="env-mode-text">PAPER TRADING</strong></span>
         </div>
         <button class="btn btn-tab active btn-sm" id="btn-open-plans" style="margin-left: 8px;">💎 PLANES & SUSCRIPCIÓN</button>
+        <button class="btn btn-secondary btn-sm" id="btn-open-wallet" style="margin-left: 8px;">🔑 VINCULAR WALLET</button>
         <button class="btn btn-action btn-sm" id="btn-open-admin" style="display: none; margin-left: 8px;">⚙️ CONTROL MAESTRO SAAS</button>
         <button class="btn btn-secondary btn-sm" id="btn-logout" style="margin-left: 8px;">🔒 SALIR</button>
       </div>
@@ -176,6 +177,37 @@
         </div>
 
         <div class="pricing-status-msg" id="pricing-status-msg"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Vinculación de Billetera Polygon Cifrada (AES-256) -->
+    <div class="auth-overlay hidden" id="wallet-modal" style="z-index: 10002;">
+      <div class="glass-card auth-card" style="max-width: 500px; text-align: left; padding: 28px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h2 style="font-size: 20px; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+            <span>🔑 VINCULAR BILLETERA POLYGON</span>
+          </h2>
+          <button class="modal-close-btn" id="btn-close-wallet">✕</button>
+        </div>
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">
+          Vincula tu billetera pública de Polygon y tu clave privada de forma cifrada con algoritmos de grado militar <strong>AES-256</strong>. Tu clave privada se almacenará en nuestra bóveda de seguridad cifrada y solo será utilizada de forma local en el backend para firmar transacciones de trading en Polymarket.
+        </p>
+
+        <form id="wallet-binding-form" onsubmit="return false;">
+          <div class="form-group-vertical" style="margin-bottom: 16px;">
+            <label for="input-wallet-address" style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; display: block;">DIRECCIÓN PÚBLICA DE POLYGON (USDC):</label>
+            <input type="text" id="input-wallet-address" placeholder="0x..." class="input-field-auth" required style="width: 100%;" />
+          </div>
+          <div class="form-group-vertical" style="margin-bottom: 20px;">
+            <label for="input-wallet-private-key" style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; display: block;">CLAVE PRIVADA (HEXADECIMAL 66 CARACTERES):</label>
+            <input type="password" id="input-wallet-private-key" placeholder="0x..." class="input-field-auth" required style="width: 100%;" />
+          </div>
+          <div style="background: rgba(255, 183, 3, 0.08); border: 1px solid rgba(255, 183, 3, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #ffb703; line-height: 1.4;">
+            ⚠️ <strong>ADVERTENCIA DE SEGURIDAD:</strong> Asegúrate de estar ingresando una clave privada válida. No compartas tu clave con nadie. El bot utilizará esta clave únicamente para la ejecución automatizada de órdenes de compra/venta de acciones en Polymarket.
+          </div>
+          <div class="auth-error-msg" id="wallet-error-msg" style="margin-bottom: 16px;"></div>
+          <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-wallet">CIFRAR Y VINCULAR BILLETERA</button>
+        </form>
       </div>
     </div>
 
