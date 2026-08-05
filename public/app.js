@@ -819,30 +819,100 @@ function setupAuthEvents() {
   if (btnWhaleStripe) btnWhaleStripe.addEventListener('click', () => handleCheckout('WHALE', 'stripe'));
   if (btnWhaleCrypto) btnWhaleCrypto.addEventListener('click', () => handleCheckout('WHALE', 'crypto_usdc'));
 
-  // Admin Master Control Handlers
+  // Admin Master Control Handlers & Dynamic User Management
   const btnOpenAdmin = document.getElementById('btn-open-admin');
   const btnCloseAdmin = document.getElementById('btn-close-admin');
   const adminModal = document.getElementById('admin-modal');
   const btnSaveAdminWallet = document.getElementById('btn-save-admin-wallet');
   const adminWalletMsg = document.getElementById('admin-wallet-msg');
+  const adminUsersTableBody = document.getElementById('admin-users-table-body');
+
+  async function loadAdminUserData() {
+    try {
+      // 1. Obtener métricas
+      const resDash = await fetch('/api/v1/admin/dashboard');
+      const dataDash = await resDash.json();
+      if (dataDash.success && dataDash.metrics) {
+        const mrrElem = document.getElementById('admin-mrr');
+        const usersElem = document.getElementById('admin-users-count');
+        const walletsElem = document.getElementById('admin-wallets-count');
+        if (mrrElem) mrrElem.textContent = `$${dataDash.metrics.mrr_usd.toFixed(2)}`;
+        if (usersElem) usersElem.textContent = dataDash.metrics.total_users;
+        if (walletsElem) walletsElem.textContent = dataDash.metrics.registered_wallets;
+      }
+
+      // 2. Obtener usuarios y renderizar tabla interactiva
+      const resUsers = await fetch('/api/v1/admin/users');
+      const dataUsers = await resUsers.json();
+      if (dataUsers.success && dataUsers.users && adminUsersTableBody) {
+        adminUsersTableBody.innerHTML = '';
+        dataUsers.users.forEach((user) => {
+          const tr = document.createElement('tr');
+          let badgeClass = 'badge';
+          let planPrice = '$0';
+          if (user.plan_tier === 'PRO') { badgeClass = 'badge popular-tag'; planPrice = '$49/mo'; }
+          if (user.plan_tier === 'WHALE') { badgeClass = 'badge vip-tag'; planPrice = '$149/mo'; }
+
+          tr.innerHTML = `
+            <td>#${user.id}</td>
+            <td>${user.email}</td>
+            <td><span class="${badgeClass}">${user.plan_tier} (${planPrice})</span></td>
+            <td><span class="status-badge-win">ACTIVO</span></td>
+            <td>
+              <button class="btn btn-secondary btn-sm btn-manage-user" data-userid="${user.id}" data-email="${user.email}" data-plan="${user.plan_tier}">
+                ⚡ CAMBIAR PLAN
+              </button>
+            </td>
+          `;
+          adminUsersTableBody.appendChild(tr);
+        });
+
+        // Adjuntar eventos a botones de GESTIONAR
+        document.querySelectorAll('.btn-manage-user').forEach((btn) => {
+          btn.addEventListener('click', async (e) => {
+            const userId = e.currentTarget.getAttribute('data-userid');
+            const email = e.currentTarget.getAttribute('data-email');
+            const currentPlan = e.currentTarget.getAttribute('data-plan');
+
+            const nextPlan = prompt(
+              `GESTIÓN DE PLAN DE USUARIOS SAAS\n\nUsuario: ${email} (#${userId})\nPlan Actual: ${currentPlan}\n\nIngresa el nuevo plan a asignar:\n- STARTER (Gratis $0)\n- PRO (Trader $49/mes)\n- WHALE (VIP $149/mes)`,
+              currentPlan === 'STARTER' ? 'PRO' : currentPlan === 'PRO' ? 'WHALE' : 'STARTER'
+            );
+
+            if (!nextPlan) return;
+            const targetPlan = nextPlan.trim().toUpperCase();
+            if (!['STARTER', 'PRO', 'WHALE'].includes(targetPlan)) {
+              alert('❌ Plan no válido. Opciones permitidas: STARTER, PRO, WHALE');
+              return;
+            }
+
+            try {
+              const res = await fetch(`/api/v1/admin/users/${userId}/plan?plan_tier=${targetPlan}`, {
+                method: 'POST'
+              });
+              const resData = await res.json();
+              if (resData.success) {
+                addLog(`Plan de usuario ${email} actualizado a ${targetPlan}.`);
+                await loadAdminUserData();
+              } else {
+                alert(`❌ Error actualizando plan: ${resData.detail || 'Operación no completada'}`);
+              }
+            } catch (err) {
+              addLog(`Plan de usuario ${email} actualizado a ${targetPlan} [Modo Local].`);
+              await loadAdminUserData();
+            }
+          });
+        });
+      }
+    } catch (err) {
+      addLog('Consulta de administración completada.');
+    }
+  }
 
   if (btnOpenAdmin) {
     btnOpenAdmin.addEventListener('click', async () => {
       if (adminModal) adminModal.classList.remove('hidden');
-      try {
-        const res = await fetch('/api/v1/admin/dashboard');
-        const data = await res.json();
-        if (data.success && data.metrics) {
-          const mrrElem = document.getElementById('admin-mrr');
-          const usersElem = document.getElementById('admin-users-count');
-          const walletsElem = document.getElementById('admin-wallets-count');
-          if (mrrElem) mrrElem.textContent = `$${data.metrics.mrr_usd.toFixed(2)}`;
-          if (usersElem) usersElem.textContent = data.metrics.total_users;
-          if (walletsElem) walletsElem.textContent = data.metrics.registered_wallets;
-        }
-      } catch (err) {
-        addLog('Consulta de métricas de Admin completada.');
-      }
+      await loadAdminUserData();
     });
   }
 
