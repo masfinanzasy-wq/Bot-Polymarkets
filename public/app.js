@@ -752,7 +752,7 @@ function setupAuthEvents() {
         }
       } catch (err) {
         sessionStorage.setItem('dashboard_authenticated', 'true');
-        sessionStorage.setItem('is_admin', isAdminEmail ? 'true' : 'false');
+        sessionStorage.setItem('is_admin', 'false');
         localStorage.setItem('saas_demo_user', email);
         checkAuthentication();
         addLog(`¡Cuenta registrada con éxito! Bienvenido, ${email} [Plan Starter]`);
