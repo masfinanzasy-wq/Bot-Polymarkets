@@ -643,9 +643,9 @@ function setupAuthEvents() {
   if (btnDemoBypass) {
     btnDemoBypass.addEventListener('click', () => {
       sessionStorage.setItem('dashboard_authenticated', 'true');
-      sessionStorage.setItem('is_admin', 'true');
+      sessionStorage.setItem('is_admin', 'false');
       checkAuthentication();
-      addLog('Acceso concedido como Administrador en Modo Vista Previa Demo.');
+      addLog('Acceso concedido en Modo Vista Previa Demo.');
     });
   }
 
@@ -839,6 +839,18 @@ function setupAuthEvents() {
   if (btnProCrypto) btnProCrypto.addEventListener('click', () => handleCheckout('PRO', 'crypto_usdc'));
   if (btnWhaleStripe) btnWhaleStripe.addEventListener('click', () => handleCheckout('WHALE', 'stripe'));
   if (btnWhaleCrypto) btnWhaleCrypto.addEventListener('click', () => handleCheckout('WHALE', 'crypto_usdc'));
+
+  // Admin Master Control & Plan Management Elements
+  const adminModal = document.getElementById('admin-modal');
+  const userPlanModal = document.getElementById('user-plan-modal');
+  const adminUsersTableBody = document.getElementById('admin-users-table-body');
+  const planModalEmail = document.getElementById('plan-modal-email');
+  const planModalCurrent = document.getElementById('plan-modal-current');
+  const planModalMsg = document.getElementById('plan-modal-msg');
+  const adminWalletMsg = document.getElementById('admin-wallet-msg');
+
+  let selectedUserIdForPlan = null;
+  let selectedUserEmailForPlan = '';
 
   // In-Memory SaaS User Cache for Real-Time State Persistence
   let saasUsersCache = [
