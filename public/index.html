@@ -52,6 +52,7 @@
           <span class="icon">🛡️</span>
           <span>MODO: <strong id="env-mode-text">PAPER TRADING</strong></span>
         </div>
+        <button class="btn btn-tab active btn-sm" id="btn-open-plans" style="margin-left: 8px;">💎 PLANES & SUSCRIPCIÓN</button>
         <button class="btn btn-secondary btn-sm" id="btn-logout" style="margin-left: 8px;">🔒 SALIR</button>
       </div>
     </header>
@@ -107,6 +108,69 @@
           <div class="auth-error-msg" id="saas-reg-error"></div>
           <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-saas-register">CREAR CUENTA SAAS</button>
         </form>
+    <!-- Modal de Catálogo de Planes y Pasarela de Pago SaaS -->
+    <div class="auth-overlay hidden" id="pricing-modal">
+      <div class="glass-card pricing-card-container">
+        <div class="pricing-header">
+          <div class="auth-icon">💎</div>
+          <h2>CATÁLOGO DE MEMBRESÍAS & SUSCRIPCIÓN SAAS</h2>
+          <p class="auth-subtitle">Selecciona el plan ideal para automatizar tu estrategia cuantitativa en Polymarket</p>
+          <button class="modal-close-btn" id="btn-close-pricing">✕</button>
+        </div>
+
+        <div class="plans-grid">
+          <!-- Plan 1: Starter -->
+          <div class="glass-card plan-card">
+            <div class="plan-badge">STARTER</div>
+            <div class="plan-price">$0 <span>/ mes</span></div>
+            <div class="plan-sub">Ideal para pruebas y simulaciones</div>
+            <ul class="plan-features">
+              <li>✓ Paper Trading ilimitado ($1,000 USD virtual)</li>
+              <li>✓ Gráfico Chart.js en tiempo real</li>
+              <li>✓ Indicadores EMA, VWAP, RSI y Delta</li>
+              <li>✓ Terminal Dashboard SPA Glassmorphism</li>
+            </ul>
+            <button class="btn btn-secondary btn-full" id="btn-select-starter">PLAN GRATUITO ACTUAL</button>
+          </div>
+
+          <!-- Plan 2: Pro Trader (Popular) -->
+          <div class="glass-card plan-card popular-plan">
+            <div class="plan-badge popular-tag">⭐ PRO TRADER (MÁS POPULAR)</div>
+            <div class="plan-price">$49 <span>/ mes</span></div>
+            <div class="plan-sub">Para operar en vivo con capital real</div>
+            <ul class="plan-features">
+              <li>✓ <strong>Live Trading Real en Polygon Mainnet</strong></li>
+              <li>✓ Capital de trading hasta $1,000.00 USD</li>
+              <li>✓ <strong>Bot de Alertas Instantáneas por Telegram</strong></li>
+              <li>✓ Gestión de riesgo dinámico Kelly Criterion</li>
+              <li>✓ Optimización automática de parámetros</li>
+            </ul>
+            <div class="pay-buttons-group">
+              <button class="btn btn-action btn-full" id="btn-pay-pro-stripe">💳 PAGAR CON STRIPE ($49)</button>
+              <button class="btn btn-tab active btn-full" id="btn-pay-pro-crypto">⚡ PAGAR USDC CRIPTO ($49)</button>
+            </div>
+          </div>
+
+          <!-- Plan 3: Whale VIP -->
+          <div class="glass-card plan-card">
+            <div class="plan-badge vip-tag">👑 WHALE VIP</div>
+            <div class="plan-price">$149 <span>/ mes</span></div>
+            <div class="plan-sub">Máxima capacidad sin restricciones</div>
+            <ul class="plan-features">
+              <li>✓ <strong>Capital de trading ilimitado</strong></li>
+              <li>✓ Ejecución multi-cripto (BTC, ETH, SOL)</li>
+              <li>✓ Bóveda AES-256 de baja latencia</li>
+              <li>✓ Canal exclusivo de Telegram VIP</li>
+              <li>✓ Soporte técnico y configuración 1 a 1</li>
+            </ul>
+            <div class="pay-buttons-group">
+              <button class="btn btn-action btn-full" id="btn-pay-whale-stripe">💳 PAGAR CON STRIPE ($149)</button>
+              <button class="btn btn-tab active btn-full" id="btn-pay-whale-crypto">⚡ PAGAR USDC CRIPTO ($149)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pricing-status-msg" id="pricing-status-msg"></div>
       </div>
     </div>
 

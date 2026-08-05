@@ -741,6 +741,74 @@ function setupAuthEvents() {
       addLog('Sesión cerrada por el usuario.');
     });
   }
+
+  // Pricing Modal & Checkout Handlers
+  const btnOpenPlans = document.getElementById('btn-open-plans');
+  const btnClosePricing = document.getElementById('btn-close-pricing');
+  const pricingModal = document.getElementById('pricing-modal');
+  const pricingStatusMsg = document.getElementById('pricing-status-msg');
+
+  if (btnOpenPlans) {
+    btnOpenPlans.addEventListener('click', () => {
+      if (pricingModal) pricingModal.classList.remove('hidden');
+    });
+  }
+
+  if (btnClosePricing) {
+    btnClosePricing.addEventListener('click', () => {
+      if (pricingModal) pricingModal.classList.add('hidden');
+    });
+  }
+
+  async function handleCheckout(planTier, paymentMethod) {
+    if (pricingStatusMsg) pricingStatusMsg.textContent = `Generando pasarela de pago para Plan ${planTier}...`;
+    const token = localStorage.getItem('saas_token') || '';
+
+    try {
+      const res = await fetch('/api/v1/billing/checkout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : ''
+        },
+        body: JSON.stringify({ plan_tier: planTier, payment_method: paymentMethod })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success && data.checkout_url) {
+        if (pricingStatusMsg) pricingStatusMsg.textContent = '🚀 Redirigiendo a la pasarela de pago...';
+        addLog(`Checkout generado para Plan ${planTier} [${paymentMethod}]. Redirigiendo...`);
+        window.open(data.checkout_url, '_blank');
+      } else {
+        // Fallback demo para visualización en cliente
+        const demoUrl = paymentMethod === 'crypto_usdc' 
+          ? 'https://pay.coinbase.com/checkout' 
+          : 'https://checkout.stripe.com';
+        if (pricingStatusMsg) pricingStatusMsg.textContent = `Pasarela Demo (${paymentMethod}): Redirigiendo...`;
+        addLog(`Checkout Demo (${paymentMethod}) iniciado para Plan ${planTier}.`);
+        window.open(demoUrl, '_blank');
+      }
+    } catch (err) {
+      const demoUrl = paymentMethod === 'crypto_usdc' 
+        ? 'https://pay.coinbase.com/checkout' 
+        : 'https://checkout.stripe.com';
+      if (pricingStatusMsg) pricingStatusMsg.textContent = `Pasarela Demo (${paymentMethod}): Redirigiendo...`;
+      addLog(`Checkout Demo (${paymentMethod}) iniciado para Plan ${planTier}.`);
+      window.open(demoUrl, '_blank');
+    }
+  }
+
+  // Configurar botones de pago
+  const btnProStripe = document.getElementById('btn-pay-pro-stripe');
+  const btnProCrypto = document.getElementById('btn-pay-pro-crypto');
+  const btnWhaleStripe = document.getElementById('btn-pay-whale-stripe');
+  const btnWhaleCrypto = document.getElementById('btn-pay-whale-crypto');
+
+  if (btnProStripe) btnProStripe.addEventListener('click', () => handleCheckout('PRO', 'stripe'));
+  if (btnProCrypto) btnProCrypto.addEventListener('click', () => handleCheckout('PRO', 'crypto_usdc'));
+  if (btnWhaleStripe) btnWhaleStripe.addEventListener('click', () => handleCheckout('WHALE', 'stripe'));
+  if (btnWhaleCrypto) btnWhaleCrypto.addEventListener('click', () => handleCheckout('WHALE', 'crypto_usdc'));
 }
 
 // App Initialization
