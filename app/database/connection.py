@@ -8,12 +8,22 @@ from app.database.models import Base
 from app.logger.logger import sys_logger
 
 
+# Detectar si se requiere SSL (ej. Supabase, Heroku, Neon, AWS)
+extra_connect_args = {}
+if "supabase" in settings.DATABASE_URL.lower() or "ssl=require" in settings.DATABASE_URL.lower() or "pooler.supabase.com" in settings.DATABASE_URL.lower():
+    import ssl
+    ssl_context = ssl.create_default_context()
+    ssl_context.check_hostname = False
+    ssl_context.verify_mode = ssl.CERT_NONE
+    extra_connect_args["ssl"] = ssl_context
+
 # Crear engine asíncrono
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=False,
     future=True,
     pool_pre_ping=True,
+    connect_args=extra_connect_args,
 )
 
 # Factory de sesiones asíncronas
