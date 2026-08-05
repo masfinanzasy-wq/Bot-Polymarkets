@@ -488,6 +488,36 @@ function addLog(msg) {
   }
 }
 
+async function checkSystemHealth() {
+  try {
+    const res = await fetch('/api/v1/health');
+    if (res.ok) {
+      const data = await res.json();
+      const envModeText = document.getElementById('env-mode-text');
+      const envModePill = document.querySelector('.status-pill.env-mode');
+      if (envModeText) {
+        if (data.paper_trading) {
+          envModeText.textContent = 'PAPER TRADING';
+          envModeText.style.color = '#00e676';
+          if (envModePill) {
+            const iconSpan = envModePill.querySelector('.icon');
+            if (iconSpan) iconSpan.textContent = '🛡️';
+          }
+        } else {
+          envModeText.textContent = '🔴 REAL LIVE';
+          envModeText.style.color = '#ff0055';
+          if (envModePill) {
+            const iconSpan = envModePill.querySelector('.icon');
+            if (iconSpan) iconSpan.textContent = '⚡';
+          }
+        }
+      }
+    }
+  } catch (err) {
+    // Fallback default
+  }
+}
+
 // Connect Backend FastAPI Live WebSocket
 function initBackendWS() {
   const wsUrl = `ws://${window.location.host}/ws/live`;
@@ -1128,6 +1158,7 @@ function setupAuthEvents() {
 // App Initialization
 document.addEventListener('DOMContentLoaded', () => {
   checkAuthentication();
+  checkSystemHealth();
   setupAuthEvents();
   initChart();
   initBinanceWS();
