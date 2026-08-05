@@ -19,11 +19,17 @@ from app.logger.logger import sys_logger
 from app.indicators import IndicatorsEngine
 from app.binance.schemas import BinanceTradeTick
 
+from app.security import SecurityHeadersMiddleware, RateLimiterMiddleware
+
 app = FastAPI(
     title=settings.APP_NAME,
     description="API REST y Dashboard Web en Tiempo Real para el Bot de Trading Predictivo en Polymarket M5",
     version="2.0.0",
 )
+
+# Registrar Capa de Seguridad (Headers de Seguridad y Rate Limiter por IP)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RateLimiterMiddleware, max_requests_per_minute=120, auth_max_requests=5)
 
 # Habilitar CORS
 app.add_middleware(
