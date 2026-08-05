@@ -53,6 +53,7 @@
           <span>MODO: <strong id="env-mode-text">PAPER TRADING</strong></span>
         </div>
         <button class="btn btn-tab active btn-sm" id="btn-open-plans" style="margin-left: 8px;">💎 PLANES & SUSCRIPCIÓN</button>
+        <button class="btn btn-action btn-sm" id="btn-open-admin" style="margin-left: 8px;">⚙️ CONTROL MAESTRO SAAS</button>
         <button class="btn btn-secondary btn-sm" id="btn-logout" style="margin-left: 8px;">🔒 SALIR</button>
       </div>
     </header>
@@ -175,6 +176,94 @@
         </div>
 
         <div class="pricing-status-msg" id="pricing-status-msg"></div>
+      </div>
+    </div>
+
+    <!-- Modal de Panel de Control Maestro SaaS -->
+    <div class="auth-overlay hidden" id="admin-modal">
+      <div class="glass-card pricing-card-container">
+        <div class="pricing-header">
+          <div class="auth-icon">⚙️</div>
+          <h2>PANEL MAESTRO DE CONTROL SAAS & INGRESOS</h2>
+          <p class="auth-subtitle">Gestión centralizada de ingresos MRR, billetera de recaudación, pasarelas de pago y usuarios</p>
+          <button class="modal-close-btn" id="btn-close-admin">✕</button>
+        </div>
+
+        <!-- SaaS KPI Grid -->
+        <div class="kpi-grid" style="margin-bottom: 20px;">
+          <div class="glass-card kpi-card">
+            <div class="card-header"><span class="title">MRR (INGRESOS RECURRENTES)</span><span class="badge live-badge">$ / MES</span></div>
+            <div class="kpi-value-container"><div class="main-price ev-highlight" id="admin-mrr">$345.00</div></div>
+            <div class="card-footer"><span>Stripe + Cripto USDC</span></div>
+          </div>
+          <div class="glass-card kpi-card">
+            <div class="card-header"><span class="title">USUARIOS REGISTRADOS</span><span class="badge balance-badge">TOTAL</span></div>
+            <div class="kpi-value-container"><div class="main-price" id="admin-users-count">15</div></div>
+            <div class="card-footer"><span>10 Starter | 4 Pro | 1 Whale</span></div>
+          </div>
+          <div class="glass-card kpi-card">
+            <div class="card-header"><span class="title">BILLETERAS AES-256</span><span class="badge live-badge">POLYGON</span></div>
+            <div class="kpi-value-container"><div class="main-price" id="admin-wallets-count">5</div></div>
+            <div class="card-footer"><span>Bóveda Cifrada Activa</span></div>
+          </div>
+          <div class="glass-card kpi-card">
+            <div class="card-header"><span class="title">PASARELAS DE PAGO</span><span class="badge vwap-badge">ONLINE</span></div>
+            <div class="kpi-value-container"><div class="main-price" style="font-size: 16px; color: var(--accent-emerald);">STRIPE / USDC</div></div>
+            <div class="card-footer"><span>Webhooks Escuchando</span></div>
+          </div>
+        </div>
+
+        <!-- Wallet Configuration Form -->
+        <div class="glass-card" style="margin-bottom: 20px; padding: 20px;">
+          <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 10px; color: var(--accent-cyan);">💳 BILLETERA MAESTRA DE RECAUDACIÓN (USDC POLYGON)</h3>
+          <div class="form-group-vertical" style="margin-bottom: 10px;">
+            <label for="input-admin-wallet">Dirección Polygon para recibir pagos en USDC:</label>
+            <input type="text" id="input-admin-wallet" value="0x742d35Cc6634C0532925a3b844Bc454e4438f44e" class="input-field-auth" />
+          </div>
+          <button class="btn btn-tab active" id="btn-save-admin-wallet">GUARDAR CONFIGURACIÓN DE BILLETERA</button>
+          <span id="admin-wallet-msg" style="margin-left: 12px; font-size: 12px; color: var(--accent-emerald);"></span>
+        </div>
+
+        <!-- SaaS User Management Table -->
+        <div class="glass-card" style="padding: 20px;">
+          <h3 style="font-size: 14px; font-weight: 700; margin-bottom: 10px;">👥 GESTIÓN DE USUARIOS Y GESTIÓN DE PLANES</h3>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID USUARIO</th>
+                  <th>CORREO ELECTRÓNICO</th>
+                  <th>MEMBRESÍA ACTUAL</th>
+                  <th>ESTADO</th>
+                  <th>ACCIONES DE PLAN</th>
+                </tr>
+              </thead>
+              <tbody id="admin-users-table-body">
+                <tr>
+                  <td>#1</td>
+                  <td>admin@polymarketm5.com</td>
+                  <td><span class="badge vip-tag">WHALE VIP ($149)</span></td>
+                  <td><span class="status-badge-win">ACTIVO</span></td>
+                  <td><button class="btn btn-secondary btn-sm">GESTIONAR</button></td>
+                </tr>
+                <tr>
+                  <td>#2</td>
+                  <td>trader_pro@gmail.com</td>
+                  <td><span class="badge popular-tag">PRO TRADER ($49)</span></td>
+                  <td><span class="status-badge-win">ACTIVO</span></td>
+                  <td><button class="btn btn-secondary btn-sm">GESTIONAR</button></td>
+                </tr>
+                <tr>
+                  <td>#3</td>
+                  <td>user_demo@hotmail.com</td>
+                  <td><span class="badge">STARTER ($0)</span></td>
+                  <td><span class="status-badge-open">GRATIS</span></td>
+                  <td><button class="btn btn-secondary btn-sm">SUBIR A PRO</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </div>
 

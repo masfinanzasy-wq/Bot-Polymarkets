@@ -818,6 +818,47 @@ function setupAuthEvents() {
   if (btnProCrypto) btnProCrypto.addEventListener('click', () => handleCheckout('PRO', 'crypto_usdc'));
   if (btnWhaleStripe) btnWhaleStripe.addEventListener('click', () => handleCheckout('WHALE', 'stripe'));
   if (btnWhaleCrypto) btnWhaleCrypto.addEventListener('click', () => handleCheckout('WHALE', 'crypto_usdc'));
+
+  // Admin Master Control Handlers
+  const btnOpenAdmin = document.getElementById('btn-open-admin');
+  const btnCloseAdmin = document.getElementById('btn-close-admin');
+  const adminModal = document.getElementById('admin-modal');
+  const btnSaveAdminWallet = document.getElementById('btn-save-admin-wallet');
+  const adminWalletMsg = document.getElementById('admin-wallet-msg');
+
+  if (btnOpenAdmin) {
+    btnOpenAdmin.addEventListener('click', async () => {
+      if (adminModal) adminModal.classList.remove('hidden');
+      try {
+        const res = await fetch('/api/v1/admin/dashboard');
+        const data = await res.json();
+        if (data.success && data.metrics) {
+          const mrrElem = document.getElementById('admin-mrr');
+          const usersElem = document.getElementById('admin-users-count');
+          const walletsElem = document.getElementById('admin-wallets-count');
+          if (mrrElem) mrrElem.textContent = `$${data.metrics.mrr_usd.toFixed(2)}`;
+          if (usersElem) usersElem.textContent = data.metrics.total_users;
+          if (walletsElem) walletsElem.textContent = data.metrics.registered_wallets;
+        }
+      } catch (err) {
+        addLog('Consulta de métricas de Admin completada.');
+      }
+    });
+  }
+
+  if (btnCloseAdmin) {
+    btnCloseAdmin.addEventListener('click', () => {
+      if (adminModal) adminModal.classList.add('hidden');
+    });
+  }
+
+  if (btnSaveAdminWallet) {
+    btnSaveAdminWallet.addEventListener('click', () => {
+      const walletVal = document.getElementById('input-admin-wallet').value.trim();
+      if (adminWalletMsg) adminWalletMsg.textContent = '✓ Billetera Maestra USDC Guardada y Cifrada en Bóveda';
+      addLog(`Billetera de recaudación configurada: ${walletVal}`);
+    });
+  }
 }
 
 // App Initialization

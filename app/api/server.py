@@ -22,6 +22,7 @@ from app.binance.schemas import BinanceTradeTick
 from app.security import SecurityHeadersMiddleware, RateLimiterMiddleware
 from app.api.auth_routes import router as auth_router
 from app.api.billing_routes import router as billing_router
+from app.api.admin_routes import router as admin_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -29,9 +30,10 @@ app = FastAPI(
     version="2.0.0",
 )
 
-# Incluir Rutas SaaS (Autenticación y Planes de Suscripción)
+# Incluir Rutas SaaS (Autenticación, Planes de Suscripción y Panel Maestro Admin)
 app.include_router(auth_router)
 app.include_router(billing_router)
+app.include_router(admin_router)
 
 # Registrar Capa de Seguridad (Headers de Seguridad y Rate Limiter por IP)
 app.add_middleware(SecurityHeadersMiddleware)
