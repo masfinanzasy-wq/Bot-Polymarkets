@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     PAPER_TRADING: bool = True
     DASHBOARD_ACCESS_KEY: str = "polymarket2026"
+    TELEGRAM_BOT_TOKEN: str = ""
 
     # Binance Config
     BINANCE_WS_URL: str = "wss://stream.binance.com:9443/ws"
