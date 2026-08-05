@@ -819,84 +819,20 @@ function setupAuthEvents() {
   if (btnWhaleStripe) btnWhaleStripe.addEventListener('click', () => handleCheckout('WHALE', 'stripe'));
   if (btnWhaleCrypto) btnWhaleCrypto.addEventListener('click', () => handleCheckout('WHALE', 'crypto_usdc'));
 
-  // Admin Master Control Handlers & Dynamic User Management
-  const btnOpenAdmin = document.getElementById('btn-open-admin');
-  const btnCloseAdmin = document.getElementById('btn-close-admin');
+  // Admin Master Control & Plan Management with Robust Event Delegation
   const adminModal = document.getElementById('admin-modal');
-  const btnSaveAdminWallet = document.getElementById('btn-save-admin-wallet');
-  const adminWalletMsg = document.getElementById('admin-wallet-msg');
-  const adminUsersTableBody = document.getElementById('admin-users-table-body');
-
-  // Plan Selection Overlay Modal Elements
   const userPlanModal = document.getElementById('user-plan-modal');
-  const btnClosePlanModal = document.getElementById('btn-close-plan-modal');
+  const adminUsersTableBody = document.getElementById('admin-users-table-body');
   const planModalEmail = document.getElementById('plan-modal-email');
   const planModalCurrent = document.getElementById('plan-modal-current');
   const planModalMsg = document.getElementById('plan-modal-msg');
+  const adminWalletMsg = document.getElementById('admin-wallet-msg');
+
   let selectedUserIdForPlan = null;
   let selectedUserEmailForPlan = '';
 
-  function attachManageUserEvents() {
-    document.querySelectorAll('.btn-manage-user').forEach((btn) => {
-      btn.addEventListener('click', (e) => {
-        const userId = e.currentTarget.getAttribute('data-userid');
-        const email = e.currentTarget.getAttribute('data-email');
-        const currentPlan = e.currentTarget.getAttribute('data-plan');
-
-        selectedUserIdForPlan = userId;
-        selectedUserEmailForPlan = email;
-
-        if (planModalEmail) planModalEmail.textContent = email;
-        if (planModalCurrent) planModalCurrent.textContent = currentPlan;
-        if (planModalMsg) planModalMsg.textContent = '';
-        if (userPlanModal) userPlanModal.classList.remove('hidden');
-      });
-    });
-  }
-
-  if (btnClosePlanModal) {
-    btnClosePlanModal.addEventListener('click', () => {
-      if (userPlanModal) userPlanModal.classList.add('hidden');
-    });
-  }
-
-  // Configurar botones de asignación de plan (STARTER, PRO, WHALE)
-  document.querySelectorAll('.btn-assign-plan').forEach((btn) => {
-    btn.addEventListener('click', async (e) => {
-      const targetPlan = e.currentTarget.getAttribute('data-targetplan');
-      if (!selectedUserIdForPlan) return;
-
-      if (planModalMsg) planModalMsg.textContent = `Actualizando a Plan ${targetPlan}...`;
-
-      try {
-        const res = await fetch(`/api/v1/admin/users/${selectedUserIdForPlan}/plan?plan_tier=${targetPlan}`, {
-          method: 'POST'
-        });
-        const resData = await res.json();
-        if (resData.success) {
-          if (planModalMsg) planModalMsg.textContent = `✓ Plan actualizado con éxito a ${targetPlan}`;
-          addLog(`Plan del usuario ${selectedUserEmailForPlan} actualizado a ${targetPlan}.`);
-          setTimeout(() => {
-            if (userPlanModal) userPlanModal.classList.add('hidden');
-            loadAdminUserData();
-          }, 800);
-        } else {
-          if (planModalMsg) planModalMsg.textContent = `❌ ${resData.detail || 'Error actualizando plan'}`;
-        }
-      } catch (err) {
-        if (planModalMsg) planModalMsg.textContent = `✓ Plan actualizado con éxito a ${targetPlan}`;
-        addLog(`Plan del usuario ${selectedUserEmailForPlan} actualizado a ${targetPlan} [Modo Local].`);
-        setTimeout(() => {
-          if (userPlanModal) userPlanModal.classList.add('hidden');
-          loadAdminUserData();
-        }, 800);
-      }
-    });
-  });
-
   async function loadAdminUserData() {
     try {
-      // 1. Obtener métricas
       const resDash = await fetch('/api/v1/admin/dashboard');
       const dataDash = await resDash.json();
       if (dataDash.success && dataDash.metrics) {
@@ -908,7 +844,6 @@ function setupAuthEvents() {
         if (walletsElem) walletsElem.textContent = dataDash.metrics.registered_wallets;
       }
 
-      // 2. Obtener usuarios y renderizar tabla interactiva
       const resUsers = await fetch('/api/v1/admin/users');
       const dataUsers = await resUsers.json();
       if (dataUsers.success && dataUsers.users && adminUsersTableBody) {
@@ -926,47 +861,104 @@ function setupAuthEvents() {
             <td><span class="${badgeClass}">${user.plan_tier} (${planPrice})</span></td>
             <td><span class="status-badge-win">ACTIVO</span></td>
             <td>
-              <button class="btn btn-secondary btn-sm btn-manage-user" data-userid="${user.id}" data-email="${user.email}" data-plan="${user.plan_tier}">
+              <button type="button" class="btn btn-secondary btn-sm btn-manage-user" data-userid="${user.id}" data-email="${user.email}" data-plan="${user.plan_tier}">
                 ⚡ CAMBIAR PLAN
               </button>
             </td>
           `;
           adminUsersTableBody.appendChild(tr);
         });
-
-        attachManageUserEvents();
-      } else {
-        attachManageUserEvents();
       }
     } catch (err) {
-      attachManageUserEvents();
       addLog('Consulta de administración completada.');
     }
   }
 
-  // Inicializar eventos de la tabla estática
-  attachManageUserEvents();
-
-  if (btnOpenAdmin) {
-    btnOpenAdmin.addEventListener('click', async () => {
+  // Delegación de Eventos Global en el Documento (Inmune a problemas de DOM dinámico)
+  document.addEventListener('click', async (e) => {
+    // 1. Abrir Modal Admin
+    const openAdminBtn = e.target.closest('#btn-open-admin');
+    if (openAdminBtn) {
       if (adminModal) adminModal.classList.remove('hidden');
       await loadAdminUserData();
-    });
-  }
+      return;
+    }
 
-  if (btnCloseAdmin) {
-    btnCloseAdmin.addEventListener('click', () => {
+    // 2. Cerrar Modal Admin
+    const closeAdminBtn = e.target.closest('#btn-close-admin');
+    if (closeAdminBtn) {
       if (adminModal) adminModal.classList.add('hidden');
-    });
-  }
+      return;
+    }
 
-  if (btnSaveAdminWallet) {
-    btnSaveAdminWallet.addEventListener('click', () => {
-      const walletVal = document.getElementById('input-admin-wallet').value.trim();
+    // 3. Clic en Botón "⚡ CAMBIAR PLAN"
+    const manageUserBtn = e.target.closest('.btn-manage-user');
+    if (manageUserBtn) {
+      const userId = manageUserBtn.getAttribute('data-userid');
+      const email = manageUserBtn.getAttribute('data-email');
+      const currentPlan = manageUserBtn.getAttribute('data-plan');
+
+      selectedUserIdForPlan = userId;
+      selectedUserEmailForPlan = email;
+
+      if (planModalEmail) planModalEmail.textContent = email;
+      if (planModalCurrent) planModalCurrent.textContent = currentPlan;
+      if (planModalMsg) planModalMsg.textContent = '';
+      if (userPlanModal) userPlanModal.classList.remove('hidden');
+      return;
+    }
+
+    // 4. Cerrar Modal de Selección de Plan
+    const closePlanBtn = e.target.closest('#btn-close-plan-modal');
+    if (closePlanBtn) {
+      if (userPlanModal) userPlanModal.classList.add('hidden');
+      return;
+    }
+
+    // 5. Clic en Asignar Plan (STARTER, PRO, WHALE)
+    const assignPlanBtn = e.target.closest('.btn-assign-plan');
+    if (assignPlanBtn) {
+      const targetPlan = assignPlanBtn.getAttribute('data-targetplan');
+      if (!selectedUserIdForPlan) return;
+
+      if (planModalMsg) planModalMsg.textContent = `Actualizando a Plan ${targetPlan}...`;
+
+      try {
+        const res = await fetch(`/api/v1/admin/users/${selectedUserIdForPlan}/plan?plan_tier=${targetPlan}`, {
+          method: 'POST'
+        });
+        const resData = await res.json();
+        if (resData.success) {
+          if (planModalMsg) planModalMsg.textContent = `✓ Plan actualizado con éxito a ${targetPlan}`;
+          addLog(`Plan del usuario ${selectedUserEmailForPlan} actualizado a ${targetPlan}.`);
+          setTimeout(() => {
+            if (userPlanModal) userPlanModal.classList.add('hidden');
+            loadAdminUserData();
+          }, 600);
+        } else {
+          if (planModalMsg) planModalMsg.textContent = `❌ ${resData.detail || 'Error actualizando plan'}`;
+        }
+      } catch (err) {
+        if (planModalMsg) planModalMsg.textContent = `✓ Plan actualizado con éxito a ${targetPlan}`;
+        addLog(`Plan del usuario ${selectedUserEmailForPlan} actualizado a ${targetPlan} [Modo Local].`);
+        setTimeout(() => {
+          if (userPlanModal) userPlanModal.classList.add('hidden');
+          loadAdminUserData();
+        }, 600);
+      }
+      return;
+    }
+
+    // 6. Guardar Billetera Admin
+    const saveWalletBtn = e.target.closest('#btn-save-admin-wallet');
+    if (saveWalletBtn) {
+      const walletInput = document.getElementById('input-admin-wallet');
+      const walletVal = walletInput ? walletInput.value.trim() : '';
       if (adminWalletMsg) adminWalletMsg.textContent = '✓ Billetera Maestra USDC Guardada y Cifrada en Bóveda';
       addLog(`Billetera de recaudación configurada: ${walletVal}`);
-    });
-  }
+      return;
+    }
+  });
 }
 
 // App Initialization
