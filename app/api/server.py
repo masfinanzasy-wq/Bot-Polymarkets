@@ -141,8 +141,11 @@ async def startup_event():
     try:
         await init_db()
     except Exception as err:
-        sys_logger.error(f"Error al inicializar tablas en base de datos: {err}")
-    asyncio.create_task(live_data_broadcaster())
+        sys_logger.warning(f"Modo Serverless Vercel (Sin DB local activa): {err}")
+    try:
+        asyncio.create_task(live_data_broadcaster())
+    except Exception:
+        pass
 
 @app.get("/", response_class=FileResponse)
 async def serve_dashboard():
