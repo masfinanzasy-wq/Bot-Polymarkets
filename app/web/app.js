@@ -1171,6 +1171,13 @@ function setupAuthEvents() {
       document.getElementById('btn-tab-privatekey').classList.remove('active');
       document.getElementById('view-wallet-qr').classList.remove('hidden');
       document.getElementById('view-wallet-privatekey').classList.add('hidden');
+
+      const qrImg = document.getElementById('qr-walletconnect-img');
+      if (qrImg) {
+        const targetUrl = window.location.href.includes("127.0.0.1") ? "https://victoria507.com/" : window.location.href;
+        const deepLink = `https://link.trustwallet.com/open_url?coin_id=966&url=${encodeURIComponent(targetUrl)}`;
+        qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(deepLink)}`;
+      }
       return;
     }
 
