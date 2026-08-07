@@ -1155,101 +1155,26 @@ function setupAuthEvents() {
       return;
     }
 
-    // 6b. Abrir Modal de Configuración Global
-    const openSettingsBtn = e.target.closest('#btn-open-settings');
-    if (openSettingsBtn) {
-      const settingsModal = document.getElementById('settings-modal');
-      if (settingsModal) settingsModal.classList.remove('hidden');
-      return;
-    }
-
-    // 6c. Cerrar Modal de Configuración Global
-    const closeSettingsBtn = e.target.closest('#btn-close-settings');
-    if (closeSettingsBtn) {
-      const settingsModal = document.getElementById('settings-modal');
-      if (settingsModal) settingsModal.classList.add('hidden');
-      return;
-    }
-
-    // 6d. Cambiar Pestañas dentro del Modal de Configuración
-    const tabSetTrading = e.target.closest('#tab-set-trading');
-    const tabSetApi = e.target.closest('#tab-set-api');
-    const tabSetNotif = e.target.closest('#tab-set-notifications');
-    if (tabSetTrading || tabSetApi || tabSetNotif) {
-      const pTrading = document.getElementById('panel-set-trading');
-      const pApi = document.getElementById('panel-set-api');
-      const pNotif = document.getElementById('panel-set-notifications');
-
-      document.getElementById('tab-set-trading').classList.remove('active');
-      document.getElementById('tab-set-api').classList.remove('active');
-      document.getElementById('tab-set-notifications').classList.remove('active');
-
-      if (pTrading) pTrading.classList.add('hidden');
-      if (pApi) pApi.classList.add('hidden');
-      if (pNotif) pNotif.classList.add('hidden');
-
-      if (tabSetTrading) {
-        tabSetTrading.classList.add('active');
-        if (pTrading) pTrading.classList.remove('hidden');
-      } else if (tabSetApi) {
-        tabSetApi.classList.add('active');
-        if (pApi) pApi.classList.remove('hidden');
-      } else if (tabSetNotif) {
-        tabSetNotif.classList.add('active');
-        if (pNotif) pNotif.classList.remove('hidden');
-      }
-      return;
-    }
-
-    // 6e. Guardar Formulario de Configuración Global
-    const saveSettingsBtn = e.target.closest('#btn-save-settings');
-    if (saveSettingsBtn) {
-      const execMode = document.getElementById('set-execution-mode').value;
-      const tradeAmt = document.getElementById('set-trade-amount').value;
-      const minEv = document.getElementById('set-min-ev').value;
-      const stopLoss = document.getElementById('set-stop-loss').value;
-      const takeProfit = document.getElementById('set-take-profit').value;
-      const statusMsg = document.getElementById('settings-status-msg');
-
-      localStorage.setItem('bot_execution_mode', execMode);
-      localStorage.setItem('bot_trade_amount', tradeAmt);
-      localStorage.setItem('bot_min_ev', minEv);
-      localStorage.setItem('bot_stop_loss', stopLoss);
-      localStorage.setItem('bot_take_profit', takeProfit);
-
-      const envText = document.getElementById('env-mode-text');
-      if (envText) envText.textContent = execMode === 'REAL_MAINNET' ? 'POLYGON MAINNET (REAL)' : 'PAPER TRADING';
-
-      if (statusMsg) statusMsg.textContent = '✓ Configuración Global guardada y aplicada exitosamente.';
-      addLog(`⚙️ Configuración Global actualizada: Modo=${execMode}, Capital=$${tradeAmt}, EV=+${minEv}%`);
-
-      setTimeout(() => {
-        const settingsModal = document.getElementById('settings-modal');
-        if (settingsModal) settingsModal.classList.add('hidden');
-        if (statusMsg) statusMsg.textContent = '';
-      }, 1000);
-      return;
-    }
-
-    // Toggle Landing Page / Terminal
+    // Toggle Landing Page
     const toggleLandingBtn = e.target.closest('#btn-toggle-landing');
     if (toggleLandingBtn) {
-      sessionStorage.setItem('dashboard_authenticated', 'true');
       const landingElem = document.getElementById('landing-page');
       if (landingElem) landingElem.classList.toggle('hidden');
       return;
     }
 
-    // Hero CTA: Ingresar al Terminal (Acceso Directo Instantáneo)
+    // Hero CTA: Ingresar al Terminal
     const heroTerminalBtn = e.target.closest('#btn-hero-enter-terminal');
     if (heroTerminalBtn) {
-      sessionStorage.setItem('dashboard_authenticated', 'true');
-      const landingElem = document.getElementById('landing-page');
-      if (landingElem) landingElem.classList.add('hidden');
-      const authModal = document.getElementById('auth-modal');
-      if (authModal) authModal.classList.add('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      addLog('🚀 Acceso concedido al Terminal Dashboard Pro.');
+      const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
+      if (isAuth) {
+        const landingElem = document.getElementById('landing-page');
+        if (landingElem) landingElem.classList.add('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const authModal = document.getElementById('auth-modal');
+        if (authModal) authModal.classList.remove('hidden');
+      }
       return;
     }
 
