@@ -1177,6 +1177,7 @@ function setupAuthEvents() {
     // 11. Conectar Trust Wallet / Web3 en 1 Clic
     const simulateQrBtn = e.target.closest('#btn-simulate-qr-connect');
     if (simulateQrBtn) {
+      const errElem = document.getElementById('wallet-error-msg');
       if (typeof window.ethereum !== 'undefined' || typeof window.trustwallet !== 'undefined') {
         try {
           const web3Provider = window.trustwallet || window.ethereum;
@@ -1187,16 +1188,27 @@ function setupAuthEvents() {
             const addrInput = document.getElementById('input-wallet-address');
             if (addrInput) addrInput.value = userAddr;
             addLog(`📲 Trust Wallet Web3 conectada exitosamente: ${userAddr.substring(0, 6)}...${userAddr.substring(userAddr.length - 4)}`);
+            alert(`✓ Billetera Trust Wallet conectada exitosamente: ${userAddr}`);
             const walletModal = document.getElementById('wallet-modal');
             if (walletModal) walletModal.classList.add('hidden');
           }
         } catch (err) {
-          addLog(`📲 Error al conectar Trust Wallet Web3: ${err.message || 'Petición rechazada por el usuario.'}`);
+          if (errElem) errElem.textContent = `❌ Conexión cancelada: ${err.message || 'El usuario rechazó la conexión.'}`;
+          addLog(`📲 Error al conectar Trust Wallet Web3: ${err.message || 'Petición rechazada.'}`);
         }
       } else {
-        addLog('📲 Modo Simulación: Sesión Trust Wallet vinculada vía WalletConnect (Polygon Chain ID 137).');
-        const walletModal = document.getElementById('wallet-modal');
-        if (walletModal) walletModal.classList.add('hidden');
+        // Fallback interactivo si no hay extensión Web3 en el navegador
+        const promptAddress = prompt("📲 Ingrese su Dirección Pública de Polygon (USDC) de Trust Wallet:\n(Ejemplo: 0x742d35Cc6634C0532925a3b844Bc454e4438f44e)", "0x");
+        if (promptAddress && promptAddress.startsWith("0x") && promptAddress.length >= 40) {
+          const addrInput = document.getElementById('input-wallet-address');
+          if (addrInput) addrInput.value = promptAddress;
+          addLog(`📲 Dirección de Trust Wallet vinculada: ${promptAddress.substring(0, 6)}...${promptAddress.substring(promptAddress.length - 4)}`);
+          alert(`✓ Dirección de Trust Wallet vinculada correctamente:\n${promptAddress}`);
+          const walletModal = document.getElementById('wallet-modal');
+          if (walletModal) walletModal.classList.add('hidden');
+        } else if (promptAddress !== null) {
+          alert("❌ Dirección de Polygon inválida. Debe comenzar por 0x y tener al menos 40 caracteres.");
+        }
       }
       return;
     }
