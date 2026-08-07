@@ -19,15 +19,30 @@ TOKEN_EXPIRATION_SECONDS = 86400 * 7  # 7 días de validez
 security_bearer = HTTPBearer(auto_error=False)
 
 
-def hash_password(password: str) -> str:
-    """Genera un hash seguro de la contraseña del usuario mediante HMAC-SHA256 con salt."""
-    salt = b"polymarket_saas_salt_2026"
-    return hmac.new(salt, password.encode('utf-8'), hashlib.sha256).hexdigest()
+def hash_password(password: str, salt: Optional[bytes] = None) -> str:
+    """Genera un hash seguro de la contraseña del usuario mediante PBKDF2-HMAC-SHA256 con salt dinámico (100k iteraciones)."""
+    if salt is None:
+        import os
+        salt = os.urandom(16)
+    key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100_000)
+    return f"{salt.hex()}${key.hex()}"
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    """Verifica si la contraseña ingresada coincide con el hash almacenado."""
-    return hmac.compare_digest(hash_password(plain_password), hashed_password)
+    """Verifica si la contraseña ingresada coincide con el hash PBKDF2 almacenado o el legacy HMAC."""
+    try:
+        if "$" in hashed_password:
+            salt_hex, key_hex = hashed_password.split("$", 1)
+            salt = bytes.fromhex(salt_hex)
+            recalculated = hashlib.pbkdf2_hmac('sha256', plain_password.encode('utf-8'), salt, 100_000).hex()
+            return hmac.compare_digest(recalculated, key_hex)
+        else:
+            # Fallback seguro para hashes legacy creados anteriormente
+            legacy_salt = b"polymarket_saas_salt_2026"
+            legacy_hash = hmac.new(legacy_salt, plain_password.encode('utf-8'), hashlib.sha256).hexdigest()
+            return hmac.compare_digest(legacy_hash, hashed_password)
+    except Exception:
+        return False
 
 
 def create_access_token(data: Dict[str, Any], expires_delta: Optional[int] = None) -> str:

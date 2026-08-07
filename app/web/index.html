@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <div class="header-status">
+      <div class="header-status" id="header-nav-controls">
         <div class="status-pill online" id="binance-ws-status">
           <span class="dot"></span>
           <span>BINANCE WS: <strong id="binance-status-text">CONECTANDO...</strong></span>
@@ -49,14 +49,16 @@
           <span class="dot"></span>
           <span>POLYMARKET CLOB: <strong id="polymarket-status-text">ONLINE</strong></span>
         </div>
-        <div class="status-pill env-mode">
+        <div class="status-pill env-mode" id="pill-env-mode">
           <span class="icon">🛡️</span>
           <span>MODO: <strong id="env-mode-text">PAPER TRADING</strong></span>
         </div>
-        <button class="btn btn-tab active btn-sm" id="btn-open-plans" style="margin-left: 8px;">💎 PLANES & SUSCRIPCIÓN</button>
-        <button class="btn btn-secondary btn-sm" id="btn-open-wallet" style="margin-left: 8px;">🔑 VINCULAR WALLET</button>
-        <button class="btn btn-action btn-sm" id="btn-open-admin" style="display: none; margin-left: 8px;">⚙️ CONTROL MAESTRO SAAS</button>
-        <button class="btn btn-secondary btn-sm" id="btn-logout" style="margin-left: 8px;">🔒 SALIR</button>
+        <button class="btn btn-tab btn-sm" id="btn-nav-landing" style="margin-left: 8px;">🏠 INICIO</button>
+        <button class="btn btn-tab active btn-sm" id="btn-open-plans" style="margin-left: 8px;">💎 PLANES</button>
+        <button class="btn btn-secondary btn-sm" id="btn-open-wallet" style="margin-left: 8px;">🔑 BILLETERA</button>
+        <button class="btn btn-action btn-sm" id="btn-open-admin" style="display: none; margin-left: 8px;">⚙️ SAAS ADMIN</button>
+        <button class="btn btn-hero-primary btn-sm" id="btn-nav-login" style="margin-left: 8px; padding: 6px 14px;">🚀 ACCEDER AL TERMINAL</button>
+        <button class="btn btn-secondary btn-sm" id="btn-logout" style="display: none; margin-left: 8px;">🔒 SALIR</button>
       </div>
     </header>
 
@@ -328,7 +330,8 @@
               💡 <strong>VINCULACIÓN RÁPIDA:</strong> Al ingresar tu <strong>Dirección Pública (0x...)</strong>, tu billetera quedará conectada de inmediato al bot.
             </div>
             <div class="auth-error-msg" id="wallet-error-msg" style="margin-bottom: 12px;"></div>
-            <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-wallet">VINCULAR BILLETERA AHORA</button>
+            <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-wallet" style="margin-bottom: 8px;">VINCULAR BILLETERA AHORA</button>
+            <button type="button" class="btn btn-secondary btn-full" id="btn-disconnect-wallet" style="display: none; background: rgba(255, 0, 85, 0.15); border-color: rgba(255, 0, 85, 0.4); color: #ff0055;">🔴 DESCONECTAR BILLETERA</button>
           </form>
         </div>
       </div>
@@ -451,238 +454,241 @@
       </div>
     </div>
 
-    <!-- Top KPI Cards -->
-    <section class="kpi-grid">
-      <!-- Card 1: BTC Spot -->
-      <div class="glass-card kpi-card">
-        <div class="card-header">
-          <span class="title">BTC / USDT SPOT</span>
-          <span class="badge live-badge">LIVE 5M</span>
-        </div>
-        <div class="kpi-value-container">
-          <div class="main-price" id="btc-price">$63,450.00</div>
-          <div class="price-change positive" id="btc-change">+0.42%</div>
-        </div>
-        <div class="card-footer">
-          <span>EMA 9: <strong id="val-ema9">$63,410.00</strong></span>
-          <span>EMA 21: <strong id="val-ema21">$63,380.00</strong></span>
-        </div>
-      </div>
-
-      <!-- Card 2: EV Signal -->
-      <div class="glass-card kpi-card">
-        <div class="card-header">
-          <span class="title">SEÑAL EV ACTUAL</span>
-          <span class="badge signal-badge buy-no" id="signal-badge">BUY NO</span>
-        </div>
-        <div class="kpi-value-container">
-          <div class="main-price ev-highlight" id="signal-ev">+27.2% EV</div>
-          <div class="sub-metric">Win Prob: <strong id="signal-prob">77.2%</strong></div>
-        </div>
-        <div class="card-footer">
-          <span>Target Price: <strong id="signal-target">$0.5050</strong></span>
-          <span>Confianza: <strong id="signal-confidence">85%</strong></span>
-        </div>
-      </div>
-
-      <!-- Card 3: Portfolio Balance -->
-      <div class="glass-card kpi-card">
-        <div class="card-header">
-          <span class="title">PORTFOLIO SIMULADO</span>
-          <span class="badge balance-badge">USD</span>
-        </div>
-        <div class="kpi-value-container">
-          <div class="main-price" id="portfolio-balance">$1,000.00</div>
-          <div class="price-change positive" id="portfolio-pnl">+$828.70 PnL</div>
-        </div>
-        <div class="card-footer">
-          <span>Win Rate: <strong id="portfolio-winrate">100.0%</strong></span>
-          <span>Trades: <strong id="portfolio-trades">54 (54W / 0L)</strong></span>
-        </div>
-      </div>
-
-      <!-- Card 4: Order Flow & Indicators -->
-      <div class="glass-card kpi-card">
-        <div class="card-header">
-          <span class="title">ORDER FLOW & VWAP</span>
-          <span class="badge vwap-badge">SCORE</span>
-        </div>
-        <div class="kpi-value-container">
-          <div class="main-price" id="order-flow-delta">+0.45 Ratio</div>
-          <div class="sub-metric">VWAP: <strong id="val-vwap">$63,425.10</strong></div>
-        </div>
-        <div class="card-footer">
-          <span>RSI (14): <strong id="val-rsi">58.4</strong></span>
-          <span>Trend Score: <strong id="val-trend">+0.75</strong></span>
-        </div>
-      </div>
-    </section>
-
-    <!-- Main Content Area -->
-    <main class="dashboard-body">
-      <!-- Left Column: Real-time Chart & Operations Log -->
-      <div class="main-left">
-        <!-- Chart Glass Card -->
-        <div class="glass-card chart-card">
+    <!-- TERMINAL DASHBOARD VIEW (APP INTERNA) -->
+    <div id="terminal-dashboard-view" class="hidden">
+      <!-- Top KPI Cards -->
+      <section class="kpi-grid">
+        <!-- Card 1: BTC Spot -->
+        <div class="glass-card kpi-card">
           <div class="card-header">
-            <div class="chart-title-group">
-              <h2>GRÁFICO EN TIEMPO REAL - BTC/USDT M5 & INDICADORES</h2>
-              <p class="subtitle">Barras en vivo de Binance con superposición de EMA 9, EMA 21 y VWAP</p>
-            </div>
-            <div class="chart-controls">
-              <button class="btn btn-tab active" data-period="m5">M5</button>
-              <button class="btn btn-tab" data-period="m1">M1</button>
-              <button class="btn btn-action" id="btn-toggle-simulation">PAUSAR SIMULACIÓN</button>
-            </div>
+            <span class="title">BTC / USDT SPOT</span>
+            <span class="badge live-badge">LIVE 5M</span>
           </div>
-          <div class="chart-wrapper">
-            <canvas id="liveChart"></canvas>
+          <div class="kpi-value-container">
+            <div class="main-price" id="btc-price">$63,450.00</div>
+            <div class="price-change positive" id="btc-change">+0.42%</div>
+          </div>
+          <div class="card-footer">
+            <span>EMA 9: <strong id="val-ema9">$63,410.00</strong></span>
+            <span>EMA 21: <strong id="val-ema21">$63,380.00</strong></span>
           </div>
         </div>
 
-        <!-- Operations & Activity Log -->
-        <div class="glass-card log-card">
+        <!-- Card 2: EV Signal -->
+        <div class="glass-card kpi-card">
           <div class="card-header">
-            <h3>LOG DE ACTIVIDAD & SEÑALES EN TIEMPO REAL</h3>
-            <button class="btn btn-secondary btn-sm" id="btn-clear-logs">LIMPIAR LOGS</button>
+            <span class="title">SEÑAL EV ACTUAL</span>
+            <span class="badge signal-badge buy-no" id="signal-badge">BUY NO</span>
           </div>
-          <div class="log-feed" id="log-feed">
-            <!-- Dynamic Log Items inserted here -->
+          <div class="kpi-value-container">
+            <div class="main-price ev-highlight" id="signal-ev">+27.2% EV</div>
+            <div class="sub-metric">Win Prob: <strong id="signal-prob">77.2%</strong></div>
+          </div>
+          <div class="card-footer">
+            <span>Target Price: <strong id="signal-target">$0.5050</strong></span>
+            <span>Confianza: <strong id="signal-confidence">85%</strong></span>
           </div>
         </div>
-      </div>
 
-      <!-- Right Column: Polymarket CLOB Orderbook, Meters & Risk Calculator -->
-      <div class="main-right">
-        <!-- Polymarket Orderbook Card -->
-        <div class="glass-card orderbook-card">
+        <!-- Card 3: Portfolio Balance -->
+        <div class="glass-card kpi-card">
           <div class="card-header">
-            <h3>LIBRO DE ÓRDENES POLYMARKET CLOB</h3>
-            <span class="token-id-text">BTC-UP-5M</span>
+            <span class="title">PORTFOLIO SIMULADO</span>
+            <span class="badge balance-badge">USD</span>
           </div>
-          <div class="orderbook-grid">
-            <!-- Asks (Ventas) -->
-            <div class="ob-section asks-section">
-              <div class="ob-header"><span>ASK (PRECIO)</span><span>CANTIDAD (USD)</span></div>
-              <div class="ob-rows" id="asks-rows">
-                <!-- Rows injected dynamically -->
+          <div class="kpi-value-container">
+            <div class="main-price" id="portfolio-balance">$1,000.00</div>
+            <div class="price-change positive" id="portfolio-pnl">+$828.70 PnL</div>
+          </div>
+          <div class="card-footer">
+            <span>Win Rate: <strong id="portfolio-winrate">100.0%</strong></span>
+            <span>Trades: <strong id="portfolio-trades">54 (54W / 0L)</strong></span>
+          </div>
+        </div>
+
+        <!-- Card 4: Order Flow & Indicators -->
+        <div class="glass-card kpi-card">
+          <div class="card-header">
+            <span class="title">ORDER FLOW & VWAP</span>
+            <span class="badge vwap-badge">SCORE</span>
+          </div>
+          <div class="kpi-value-container">
+            <div class="main-price" id="order-flow-delta">+0.45 Ratio</div>
+            <div class="sub-metric">VWAP: <strong id="val-vwap">$63,425.10</strong></div>
+          </div>
+          <div class="card-footer">
+            <span>RSI (14): <strong id="val-rsi">58.4</strong></span>
+            <span>Trend Score: <strong id="val-trend">+0.75</strong></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Content Area -->
+      <main class="dashboard-body">
+        <!-- Left Column: Real-time Chart & Operations Log -->
+        <div class="main-left">
+          <!-- Chart Glass Card -->
+          <div class="glass-card chart-card">
+            <div class="card-header">
+              <div class="chart-title-group">
+                <h2>GRÁFICO EN TIEMPO REAL - BTC/USDT M5 & INDICADORES</h2>
+                <p class="subtitle">Barras en vivo de Binance con superposición de EMA 9, EMA 21 y VWAP</p>
+              </div>
+              <div class="chart-controls">
+                <button class="btn btn-tab active" data-period="m5">M5</button>
+                <button class="btn btn-tab" data-period="m1">M1</button>
+                <button class="btn btn-action" id="btn-toggle-simulation">PAUSAR SIMULACIÓN</button>
               </div>
             </div>
-            <!-- Spread Divider -->
-            <div class="ob-spread">
-              <span>SPREAD: <strong id="ob-spread-val">0.02 USD (2.0%)</strong></span>
-              <span>MIDPOINT: <strong id="ob-midpoint-val">$0.4900</strong></span>
+            <div class="chart-wrapper">
+              <canvas id="liveChart"></canvas>
             </div>
-            <!-- Bids (Compras) -->
-            <div class="ob-section bids-section">
-              <div class="ob-header"><span>BID (PRECIO)</span><span>CANTIDAD (USD)</span></div>
-              <div class="ob-rows" id="bids-rows">
-                <!-- Rows injected dynamically -->
+          </div>
+
+          <!-- Operations & Activity Log -->
+          <div class="glass-card log-card">
+            <div class="card-header">
+              <h3>LOG DE ACTIVIDAD & SEÑALES EN TIEMPO REAL</h3>
+              <button class="btn btn-secondary btn-sm" id="btn-clear-logs">LIMPIAR LOGS</button>
+            </div>
+            <div class="log-feed" id="log-feed">
+              <!-- Dynamic Log Items inserted here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Polymarket CLOB Orderbook, Meters & Risk Calculator -->
+        <div class="main-right">
+          <!-- Polymarket Orderbook Card -->
+          <div class="glass-card orderbook-card">
+            <div class="card-header">
+              <h3>LIBRO DE ÓRDENES POLYMARKET CLOB</h3>
+              <span class="token-id-text">BTC-UP-5M</span>
+            </div>
+            <div class="orderbook-grid">
+              <!-- Asks (Ventas) -->
+              <div class="ob-section asks-section">
+                <div class="ob-header"><span>ASK (PRECIO)</span><span>CANTIDAD (USD)</span></div>
+                <div class="ob-rows" id="asks-rows">
+                  <!-- Rows injected dynamically -->
+                </div>
+              </div>
+              <!-- Spread Divider -->
+              <div class="ob-spread">
+                <span>SPREAD: <strong id="ob-spread-val">0.02 USD (2.0%)</strong></span>
+                <span>MIDPOINT: <strong id="ob-midpoint-val">$0.4900</strong></span>
+              </div>
+              <!-- Bids (Compras) -->
+              <div class="ob-section bids-section">
+                <div class="ob-header"><span>BID (PRECIO)</span><span>CANTIDAD (USD)</span></div>
+                <div class="ob-rows" id="bids-rows">
+                  <!-- Rows injected dynamically -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quantitative Gauges & Indicators Card -->
+          <div class="glass-card gauges-card">
+            <div class="card-header">
+              <h3>GAUGES CUANTITATIVOS</h3>
+            </div>
+            <div class="gauge-item">
+              <div class="gauge-label">
+                <span>RSI (14)</span>
+                <strong id="rsi-gauge-val">58.4</strong>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill rsi-fill" id="rsi-gauge-bar" style="width: 58.4%;"></div>
+              </div>
+            </div>
+
+            <div class="gauge-item">
+              <div class="gauge-label">
+                <span>ORDER FLOW DELTA</span>
+                <strong id="delta-gauge-val">+0.45</strong>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill delta-fill" id="delta-gauge-bar" style="width: 72.5%;"></div>
+              </div>
+            </div>
+
+            <div class="gauge-item">
+              <div class="gauge-label">
+                <span>SPOT TREND SCORE</span>
+                <strong id="trend-gauge-val">+0.75</strong>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill trend-fill" id="trend-gauge-bar" style="width: 87.5%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Risk Calculator & Manual Order Card -->
+          <div class="glass-card risk-card">
+            <div class="card-header">
+              <h3>PANEL DE CONTROL & MODO DE EJECUCIÓN</h3>
+            </div>
+            <div class="control-form">
+              <div class="form-group-vertical" style="margin-bottom: 14px;">
+                <label for="select-execution-mode" style="font-size: 11px; font-weight: 700; color: var(--accent-cyan); display: block; margin-bottom: 4px;">MODO DE EJECUCIÓN DE TRADING:</label>
+                <select id="select-execution-mode" class="input-field-auth" style="font-size: 12px; padding: 8px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--accent-cyan); color: #ffffff; border-radius: 8px; width: 100%; font-weight: 700;">
+                  <option value="PAPER_TRADING">🛡️ PAPER TRADING (SIMULACIÓN EN VIVO)</option>
+                  <option value="REAL_MAINNET">🔥 ENTORNO REAL (POLYGON MAINNET)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="input-position-size">Tamaño Posición ($ USD):</label>
+                <input type="number" id="input-position-size" value="50.0" min="5" max="500" step="5" class="input-field" />
+              </div>
+              <div class="form-group">
+                <label for="input-min-ev">Threshold Min. EV (%):</label>
+                <input type="number" id="input-min-ev" value="5.0" min="1" max="25" step="0.5" class="input-field" />
+              </div>
+              <div class="button-group">
+                <button class="btn btn-success" id="btn-manual-yes">EJECUTAR BUY YES</button>
+                <button class="btn btn-danger" id="btn-manual-no">EJECUTAR BUY NO</button>
               </div>
             </div>
           </div>
         </div>
+      </main>
 
-        <!-- Quantitative Gauges & Indicators Card -->
-        <div class="glass-card gauges-card">
+      <!-- Bottom Section: Trade History Table -->
+      <section class="bottom-section">
+        <div class="glass-card trades-table-card">
           <div class="card-header">
-            <h3>GAUGES CUANTITATIVOS</h3>
-          </div>
-          <div class="gauge-item">
-            <div class="gauge-label">
-              <span>RSI (14)</span>
-              <strong id="rsi-gauge-val">58.4</strong>
+            <div class="tab-group">
+              <button class="tab-btn active" data-tab="active">POSICIONES ACTIVAS (<span id="count-active">0</span>)</button>
+              <button class="tab-btn" data-tab="history">HISTORIAL DE OPERACIONES (<span id="count-history">0</span>)</button>
             </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill rsi-fill" id="rsi-gauge-bar" style="width: 58.4%;"></div>
-            </div>
+            <button class="btn btn-secondary btn-sm" id="btn-reset-portfolio">RESET PORTFOLIO</button>
           </div>
 
-          <div class="gauge-item">
-            <div class="gauge-label">
-              <span>ORDER FLOW DELTA</span>
-              <strong id="delta-gauge-val">+0.45</strong>
-            </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill delta-fill" id="delta-gauge-bar" style="width: 72.5%;"></div>
-            </div>
-          </div>
-
-          <div class="gauge-item">
-            <div class="gauge-label">
-              <span>SPOT TREND SCORE</span>
-              <strong id="trend-gauge-val">+0.75</strong>
-            </div>
-            <div class="progress-bar-bg">
-              <div class="progress-bar-fill trend-fill" id="trend-gauge-bar" style="width: 87.5%;"></div>
-            </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID TRADING</th>
+                  <th>HORA</th>
+                  <th>MERCADO</th>
+                  <th>RESULTADO</th>
+                  <th>PRECIO ENTRADA</th>
+                  <th>ACCIONES</th>
+                  <th>COSTO (USD)</th>
+                  <th>ESTADO</th>
+                  <th>PNL (USD)</th>
+                </tr>
+              </thead>
+              <tbody id="trades-table-body">
+                <!-- Dynamic Rows inserted here -->
+              </tbody>
+            </table>
           </div>
         </div>
-
-        <!-- Risk Calculator & Manual Order Card -->
-        <div class="glass-card risk-card">
-          <div class="card-header">
-            <h3>PANEL DE CONTROL & MODO DE EJECUCIÓN</h3>
-          </div>
-          <div class="control-form">
-            <div class="form-group-vertical" style="margin-bottom: 14px;">
-              <label for="select-execution-mode" style="font-size: 11px; font-weight: 700; color: var(--accent-cyan); display: block; margin-bottom: 4px;">MODO DE EJECUCIÓN DE TRADING:</label>
-              <select id="select-execution-mode" class="input-field-auth" style="font-size: 12px; padding: 8px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--accent-cyan); color: #ffffff; border-radius: 8px; width: 100%; font-weight: 700;">
-                <option value="PAPER_TRADING">🛡️ PAPER TRADING (SIMULACIÓN EN VIVO)</option>
-                <option value="REAL_MAINNET">🔥 ENTORNO REAL (POLYGON MAINNET)</option>
-              </select>
-            </div>
-
-            <div class="form-group">
-              <label for="input-position-size">Tamaño Posición ($ USD):</label>
-              <input type="number" id="input-position-size" value="50.0" min="5" max="500" step="5" class="input-field" />
-            </div>
-            <div class="form-group">
-              <label for="input-min-ev">Threshold Min. EV (%):</label>
-              <input type="number" id="input-min-ev" value="5.0" min="1" max="25" step="0.5" class="input-field" />
-            </div>
-            <div class="button-group">
-              <button class="btn btn-success" id="btn-manual-yes">EJECUTAR BUY YES</button>
-              <button class="btn btn-danger" id="btn-manual-no">EJECUTAR BUY NO</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- Bottom Section: Trade History Table -->
-    <section class="bottom-section">
-      <div class="glass-card trades-table-card">
-        <div class="card-header">
-          <div class="tab-group">
-            <button class="tab-btn active" data-tab="active">POSICIONES ACTIVAS (<span id="count-active">0</span>)</button>
-            <button class="tab-btn" data-tab="history">HISTORIAL DE OPERACIONES (<span id="count-history">0</span>)</button>
-          </div>
-          <button class="btn btn-secondary btn-sm" id="btn-reset-portfolio">RESET PORTFOLIO</button>
-        </div>
-
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>ID TRADING</th>
-                <th>HORA</th>
-                <th>MERCADO</th>
-                <th>RESULTADO</th>
-                <th>PRECIO ENTRADA</th>
-                <th>ACCIONES</th>
-                <th>COSTO (USD)</th>
-                <th>ESTADO</th>
-                <th>PNL (USD)</th>
-              </tr>
-            </thead>
-            <tbody id="trades-table-body">
-              <!-- Dynamic Rows inserted here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 
   <!-- App Script -->

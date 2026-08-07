@@ -617,6 +617,8 @@ function updateWalletHeaderBadge(address) {
   const btnWallet = document.getElementById('btn-open-wallet');
   const inputAddr = document.getElementById('input-wallet-address');
   const walletErrorMsg = document.getElementById('wallet-error-msg');
+  const disconnectBtn = document.getElementById('btn-disconnect-wallet');
+  const balanceElem = document.getElementById('portfolio-balance');
 
   if (address && address.startsWith('0x')) {
     const shortAddr = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
@@ -626,8 +628,11 @@ function updateWalletHeaderBadge(address) {
       btnWallet.style.color = 'var(--accent-emerald)';
       btnWallet.style.background = 'rgba(0, 230, 118, 0.1)';
     }
-    if (inputAddr && !inputAddr.value) {
+    if (inputAddr) {
       inputAddr.value = address;
+    }
+    if (disconnectBtn) {
+      disconnectBtn.style.display = 'block';
     }
     if (walletErrorMsg && (!walletErrorMsg.textContent || walletErrorMsg.textContent.includes('✓'))) {
       walletErrorMsg.style.color = 'var(--accent-emerald)';
@@ -639,6 +644,12 @@ function updateWalletHeaderBadge(address) {
       btnWallet.style.borderColor = '';
       btnWallet.style.color = '';
       btnWallet.style.background = '';
+    }
+    if (disconnectBtn) {
+      disconnectBtn.style.display = 'none';
+    }
+    if (walletErrorMsg) {
+      walletErrorMsg.textContent = '';
     }
   }
 }
@@ -672,10 +683,17 @@ async function fetchLiveWalletBalance(address) {
   }
 }
 
-// Authentication & Role-Based Access Control (RBAC) Management
-function checkAuthentication() {
+function checkAuthentication(targetView) {
   const authModal = document.getElementById('auth-modal');
   const btnOpenAdmin = document.getElementById('btn-open-admin');
+  const btnNavLanding = document.getElementById('btn-nav-landing');
+  const btnNavLogin = document.getElementById('btn-nav-login');
+  const btnLogout = document.getElementById('btn-logout');
+  const binanceStatus = document.getElementById('binance-ws-status');
+  const polymarketStatus = document.getElementById('polymarket-status');
+  const envModePill = document.getElementById('pill-env-mode');
+  const landingElem = document.getElementById('landing-page');
+  const terminalViewElem = document.getElementById('terminal-dashboard-view');
 
   const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
   const isAdmin = sessionStorage.getItem('is_admin') === 'true' || localStorage.getItem('is_admin') === 'true';
@@ -686,19 +704,36 @@ function checkAuthentication() {
     fetchLiveWalletBalance(storedAddr);
   }
 
-  if (isAuth) {
-    if (authModal) authModal.classList.add('hidden');
-    const landingElem = document.getElementById('landing-page');
+  // Si está autenticado, ocultar modal de auth
+  if (isAuth && authModal) {
+    authModal.classList.add('hidden');
+  }
+
+  const showTerminal = targetView === 'terminal' || (isAuth && targetView !== 'landing');
+
+  if (showTerminal && isAuth) {
     if (landingElem) landingElem.classList.add('hidden');
+    if (terminalViewElem) terminalViewElem.classList.remove('hidden');
+    if (binanceStatus) binanceStatus.style.display = 'flex';
+    if (polymarketStatus) polymarketStatus.style.display = 'flex';
+    if (envModePill) envModePill.style.display = 'flex';
+    if (btnNavLanding) btnNavLanding.style.display = 'inline-flex';
+    if (btnNavLogin) btnNavLogin.style.display = 'none';
+    if (btnLogout) btnLogout.style.display = 'inline-flex';
+  } else {
+    if (landingElem) landingElem.classList.remove('hidden');
+    if (terminalViewElem) terminalViewElem.classList.add('hidden');
+    if (binanceStatus) binanceStatus.style.display = 'none';
+    if (polymarketStatus) polymarketStatus.style.display = 'none';
+    if (envModePill) envModePill.style.display = 'none';
+    if (btnNavLanding) btnNavLanding.style.display = 'none';
+    if (btnNavLogin) btnNavLogin.style.display = 'inline-flex';
+    if (btnLogout) btnLogout.style.display = isAuth ? 'inline-flex' : 'none';
   }
 
   // EL BOTÓN DE CONTROL MAESTRO SOLO SE MUESTRA SI ES UN ADMINISTRADOR
   if (btnOpenAdmin) {
-    if (isAuth && isAdmin) {
-      btnOpenAdmin.style.display = 'inline-flex';
-    } else {
-      btnOpenAdmin.style.display = 'none';
-    }
+    btnOpenAdmin.style.display = (isAuth && isAdmin) ? 'inline-flex' : 'none';
   }
 }
 
@@ -741,7 +776,7 @@ function setupAuthEvents() {
     btnDemoBypass.addEventListener('click', () => {
       sessionStorage.setItem('dashboard_authenticated', 'true');
       sessionStorage.setItem('is_admin', 'false');
-      checkAuthentication();
+      checkAuthentication('terminal');
       addLog('Acceso concedido en Modo Vista Previa Demo.');
     });
   }
@@ -1304,21 +1339,20 @@ function setupAuthEvents() {
       return;
     }
 
-    // Toggle Landing Page
-    const toggleLandingBtn = e.target.closest('#btn-toggle-landing');
-    if (toggleLandingBtn) {
-      const landingElem = document.getElementById('landing-page');
-      if (landingElem) landingElem.classList.toggle('hidden');
+    // Nav Button: Inicio (Volver a la Landing Page)
+    const navLandingBtn = e.target.closest('#btn-nav-landing');
+    if (navLandingBtn) {
+      checkAuthentication('landing');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    // Hero CTA: Ingresar al Terminal
-    const heroTerminalBtn = e.target.closest('#btn-hero-enter-terminal');
+    // Nav Button / Hero CTA: Acceder al Terminal
+    const heroTerminalBtn = e.target.closest('#btn-hero-enter-terminal') || e.target.closest('#btn-nav-login');
     if (heroTerminalBtn) {
       const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
       if (isAuth) {
-        const landingElem = document.getElementById('landing-page');
-        if (landingElem) landingElem.classList.add('hidden');
+        checkAuthentication('terminal');
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         const authModal = document.getElementById('auth-modal');
@@ -1402,13 +1436,20 @@ function setupAuthEvents() {
         try {
           const web3Provider = (window.phantom && window.phantom.ethereum) || window.trustwallet || window.ethereum;
           const provider = new ethers.providers.Web3Provider(web3Provider);
+          const network = await provider.getNetwork();
+          if (network.chainId !== 137 && network.chainId !== 31337) {
+            addLog(`⚠️ Advertencia de Red: Conectado a Chain ID ${network.chainId}. Se recomienda Polygon Mainnet (137).`);
+          }
           const accounts = await provider.send("eth_requestAccounts", []);
           if (accounts && accounts.length > 0) {
             const userAddr = accounts[0];
             const addrInput = document.getElementById('input-wallet-address');
             if (addrInput) addrInput.value = userAddr;
+            localStorage.setItem('linked_polygon_address', userAddr);
+            updateWalletHeaderBadge(userAddr);
+            fetchLiveWalletBalance(userAddr);
             addLog(`📲 Billetera Web3 conectada exitosamente: ${userAddr.substring(0, 6)}...${userAddr.substring(userAddr.length - 4)}`);
-            alert(`✓ Billetera conectada exitosamente: ${userAddr}`);
+            alert(`✓ Billetera conectada exitosamente:\n${userAddr}`);
             const walletModal = document.getElementById('wallet-modal');
             if (walletModal) walletModal.classList.add('hidden');
           }
@@ -1422,6 +1463,9 @@ function setupAuthEvents() {
         if (promptAddress && promptAddress.startsWith("0x") && promptAddress.length >= 40) {
           const addrInput = document.getElementById('input-wallet-address');
           if (addrInput) addrInput.value = promptAddress;
+          localStorage.setItem('linked_polygon_address', promptAddress);
+          updateWalletHeaderBadge(promptAddress);
+          fetchLiveWalletBalance(promptAddress);
           addLog(`📲 Dirección de Billetera vinculada: ${promptAddress.substring(0, 6)}...${promptAddress.substring(promptAddress.length - 4)}`);
           alert(`✓ Dirección de Billetera vinculada correctamente:\n${promptAddress}`);
           const walletModal = document.getElementById('wallet-modal');
@@ -1430,6 +1474,20 @@ function setupAuthEvents() {
           alert("❌ Dirección de Polygon inválida. Debe comenzar por 0x y tener al menos 40 caracteres.");
         }
       }
+      return;
+    }
+
+    // 12. Desconectar Billetera
+    const disconnectWalletBtn = e.target.closest('#btn-disconnect-wallet');
+    if (disconnectWalletBtn) {
+      localStorage.removeItem('linked_polygon_address');
+      const addrInput = document.getElementById('input-wallet-address');
+      if (addrInput) addrInput.value = '';
+      updateWalletHeaderBadge(null);
+      const walletModal = document.getElementById('wallet-modal');
+      if (walletModal) walletModal.classList.add('hidden');
+      alert('🔴 Billetera desconectada exitosamente.');
+      addLog('🔴 Billetera Polygon desconectada.');
       return;
     }
   });

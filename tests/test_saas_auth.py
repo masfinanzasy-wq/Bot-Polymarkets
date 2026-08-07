@@ -13,7 +13,8 @@ class TestSaaSAuth:
         hashed = hash_password(pwd)
         
         assert hashed != pwd
-        assert len(hashed) == 64  # SHA-256 hex string
+        assert "$" in hashed
+        assert len(hashed) > 64  # PBKDF2 salt:key hex string
         assert verify_password(pwd, hashed) is True
         assert verify_password("WrongPassword", hashed) is False
 
