@@ -303,25 +303,19 @@
           <button class="modal-close-btn" id="btn-close-wallet">✕</button>
         </div>
 
-        <!-- Selector de Método -->
-        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-          <button type="button" class="btn btn-tab active" id="btn-tab-privatekey" style="flex: 1; font-size: 12px; padding: 8px;">🔑 Dirección / Clave (Manual)</button>
-          <button type="button" class="btn btn-tab" id="btn-tab-qr" style="flex: 1; font-size: 12px; padding: 8px;">📲 Web3 (Phantom / Trust QR)</button>
-        </div>
-
         <!-- Botón de Conexión Automática Web3 Destacado -->
         <div style="margin-bottom: 16px;">
-          <button type="button" class="btn btn-hero-primary btn-full" id="btn-quick-web3-connect" style="padding: 10px; font-size: 13px; font-weight: 800; background: linear-gradient(135deg, #00f2fe 0%, #9d4edd 100%);">
+          <button type="button" class="btn btn-hero-primary btn-full" id="btn-quick-web3-connect" style="padding: 12px; font-size: 13px; font-weight: 800; background: linear-gradient(135deg, #00f2fe 0%, #9d4edd 100%);">
             ⚡ AUTO-DETECTAR Y CONECTAR WALLET WEB3
           </button>
         </div>
 
-        <!-- Vista 1: Dirección Pública o Clave Privada Directa -->
-        <div id="view-wallet-privatekey">
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
-            Ingresa tu dirección pública de Polygon o tu clave privada / frase semilla de 12 palabras de <strong>Phantom / Trust Wallet / MetaMask</strong>.
-          </p>
+        <div style="text-align: center; margin-bottom: 16px; font-size: 11px; color: var(--text-muted); font-weight: 700;">
+          ─── O INGRESA MANUALMENTE ───
+        </div>
 
+        <!-- Formulario Único Directo -->
+        <div id="view-wallet-privatekey">
           <form id="wallet-binding-form" onsubmit="return false;">
             <div class="form-group-vertical" style="margin-bottom: 14px;">
               <label for="input-wallet-address" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">DIRECCIÓN PÚBLICA DE POLYGON (USDC):</label>
@@ -332,29 +326,11 @@
               <input type="password" id="input-wallet-private-key" placeholder="0x... o 12 palabras clave (Opcional)" class="input-field-auth" style="width: 100%; font-size: 13px;" />
             </div>
             <div style="background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 16px; font-size: 11px; color: var(--accent-cyan); line-height: 1.4;">
-              💡 <strong>OPCIÓN RÁPIDA:</strong> Si solo pegas tu <strong>Dirección Pública (0x...)</strong>, el bot vinculará tu cuenta de inmediato para seguimiento de saldo y señales.
+              💡 <strong>VINCULACIÓN RÁPIDA:</strong> Al ingresar tu <strong>Dirección Pública (0x...)</strong>, tu billetera quedará conectada de inmediato al bot.
             </div>
             <div class="auth-error-msg" id="wallet-error-msg" style="margin-bottom: 12px;"></div>
             <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-wallet">VINCULAR BILLETERA AHORA</button>
           </form>
-        </div>
-
-        <!-- Vista 2: Conexión WalletConnect QR Code -->
-        <div id="view-wallet-qr" class="hidden" style="text-align: center; padding: 10px 0;">
-          <div style="background: rgba(0, 242, 254, 0.05); border: 1px dashed var(--accent-cyan); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
-            <div style="font-size: 13px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 12px;">
-              📲 Escanea desde Trust Wallet (WalletConnect)
-            </div>
-            <div style="background: #ffffff; padding: 12px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-              <img id="qr-walletconnect-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=wc:polymarket-m5-bot-polygon-bridge-session-2026" alt="Trust Wallet QR Code" style="width: 160px; height: 160px; display: block;" />
-            </div>
-            <p style="font-size: 11px; color: var(--text-muted); margin-top: 12px; line-height: 1.4;">
-              Abre <strong>Trust Wallet</strong> en tu teléfono > <strong>Ajustes ⚙️</strong> > <strong>WalletConnect</strong> y apunta tu cámara al código QR.
-            </p>
-          </div>
-          <button type="button" class="btn btn-secondary btn-full" id="btn-simulate-qr-connect" style="font-size: 12px;">
-            ⚡ CONECTAR DESDE TRUST WALLET APP
-          </button>
         </div>
       </div>
     </div>
