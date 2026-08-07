@@ -9,6 +9,7 @@ from sqlalchemy import select, func
 from app.database.connection import get_async_session
 from app.database.models import UserModel, UserWalletModel
 from app.billing.schemas import PlanTier
+from app.security.auth import get_current_user_payload
 from app.logger.logger import sys_logger
 
 router = APIRouter(prefix="/api/v1/admin", tags=["SaaS Master Admin Control"])
@@ -22,8 +23,18 @@ MOCK_USERS_DB = {
 }
 
 
+async def verify_admin_access(user_payload: dict = Depends(get_current_user_payload)) -> dict:
+    role = user_payload.get("role", "").upper()
+    if role != "ADMIN":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Acceso denegado. Se requieren privilegios de Administrador.")
+    return user_payload
+
+
 @router.get("/dashboard")
-async def get_admin_dashboard_metrics(db: AsyncSession = Depends(get_async_session)):
+async def get_admin_dashboard_metrics(
+    db: AsyncSession = Depends(get_async_session),
+    admin: dict = Depends(verify_admin_access)
+):
     """
     Retorna métricas clave de negocio SaaS: MRR (Monthly Recurring Revenue),
     desglose de usuarios por plan y estadísticas de billeteras cifradas.
@@ -82,7 +93,10 @@ async def get_admin_dashboard_metrics(db: AsyncSession = Depends(get_async_sessi
 
 
 @router.get("/users")
-async def list_saas_users(db: AsyncSession = Depends(get_async_session)):
+async def list_saas_users(
+    db: AsyncSession = Depends(get_async_session),
+    admin: dict = Depends(verify_admin_access)
+):
     """Devuelve la lista de usuarios registrados en el SaaS."""
     try:
         result = await db.execute(select(UserModel).order_by(UserModel.id.desc()))
@@ -111,7 +125,12 @@ async def list_saas_users(db: AsyncSession = Depends(get_async_session)):
 
 
 @router.post("/users/{user_id}/plan")
-async def update_user_plan(user_id: int, plan_tier: str, db: AsyncSession = Depends(get_async_session)):
+async def update_user_plan(
+    user_id: int,
+    plan_tier: str,
+    db: AsyncSession = Depends(get_async_session),
+    admin: dict = Depends(verify_admin_access)
+):
     """Permite al administrador cambiar el plan de un usuario manualmente."""
     tier_clean = plan_tier.strip().upper()
     try:

@@ -1,0 +1,53 @@
+name: Polymarket M5 Bot - CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-and-lint:
+    name: Run Pytest Suite & Verify Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Pytest Test Suite
+        env:
+          ENVIRONMENT: testing
+          PAPER_TRADING: true
+          DATABASE_URL: sqlite+aiosqlite:///:memory:
+        run: |
+          pytest -v tests/ test_config.py test_indicators.py test_predictor.py test_database.py test_paper_trading.py test_dashboard.py test_pro_plan_simulation.py
+
+  trigger-hostinger-deploy:
+    name: Trigger Hostinger Webhook Auto-Deploy
+    needs: test-and-lint
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Notify Hostinger Webhook
+        env:
+          HOSTINGER_WEBHOOK_URL: ${{ secrets.HOSTINGER_WEBHOOK_URL }}
+        run: |
+          if [ -n "$HOSTINGER_WEBHOOK_URL" ]; then
+            echo "🚀 Enviando señal de autodespliegue a Hostinger..."
+            curl -X POST "$HOSTINGER_WEBHOOK_URL"
+          else
+            echo "ℹ️ Secrets.HOSTINGER_WEBHOOK_URL no configurado aún (opcional para autodespliegue)."
+          fi

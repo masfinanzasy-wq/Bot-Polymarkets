@@ -10,7 +10,9 @@ from typing import Optional, Dict, Any
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-SECRET_KEY = "polymarket_saas_jwt_secret_key_2026"
+from app.config import settings
+
+SECRET_KEY = settings.JWT_SECRET_KEY
 ALGORITHM = "HS256"
 TOKEN_EXPIRATION_SECONDS = 86400 * 7  # 7 días de validez
 

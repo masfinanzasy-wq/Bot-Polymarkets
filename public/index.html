@@ -182,32 +182,60 @@
 
     <!-- Modal de Vinculación de Billetera Polygon Cifrada (AES-256) -->
     <div class="auth-overlay hidden" id="wallet-modal" style="z-index: 10002;">
-      <div class="glass-card auth-card" style="max-width: 500px; text-align: left; padding: 28px;">
+      <div class="glass-card auth-card" style="max-width: 520px; text-align: left; padding: 28px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <h2 style="font-size: 20px; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
-            <span>🔑 VINCULAR BILLETERA POLYGON</span>
+          <h2 style="font-size: 18px; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+            <span>🔑 VINCULAR POLYGON / TRUST WALLET</span>
           </h2>
           <button class="modal-close-btn" id="btn-close-wallet">✕</button>
         </div>
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px; line-height: 1.5;">
-          Vincula tu billetera pública de Polygon y tu clave privada de forma cifrada con algoritmos de grado militar <strong>AES-256</strong>. Tu clave privada se almacenará en nuestra bóveda de seguridad cifrada y solo será utilizada de forma local en el backend para firmar transacciones de trading en Polymarket.
-        </p>
 
-        <form id="wallet-binding-form" onsubmit="return false;">
-          <div class="form-group-vertical" style="margin-bottom: 16px;">
-            <label for="input-wallet-address" style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; display: block;">DIRECCIÓN PÚBLICA DE POLYGON (USDC):</label>
-            <input type="text" id="input-wallet-address" placeholder="0x..." class="input-field-auth" required style="width: 100%;" />
+        <!-- Selector de Método -->
+        <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+          <button type="button" class="btn btn-tab active" id="btn-tab-privatekey" style="flex: 1; font-size: 12px; padding: 8px;">🔑 Clave Privada (Manual)</button>
+          <button type="button" class="btn btn-tab" id="btn-tab-qr" style="flex: 1; font-size: 12px; padding: 8px;">📲 Trust Wallet (Código QR)</button>
+        </div>
+
+        <!-- Vista 1: Clave Privada Directa -->
+        <div id="view-wallet-privatekey">
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">
+            Ingresa tu dirección pública de Polygon y tu clave privada de <strong>Trust Wallet / MetaMask</strong>. Se cifrará en la bóveda de seguridad <strong>AES-256</strong> para la firma de operaciones.
+          </p>
+
+          <form id="wallet-binding-form" onsubmit="return false;">
+            <div class="form-group-vertical" style="margin-bottom: 14px;">
+              <label for="input-wallet-address" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">DIRECCIÓN PÚBLICA DE POLYGON (USDC):</label>
+              <input type="text" id="input-wallet-address" placeholder="0x..." class="input-field-auth" required style="width: 100%; font-size: 13px;" />
+            </div>
+            <div class="form-group-vertical" style="margin-bottom: 16px;">
+              <label for="input-wallet-private-key" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">CLAVE PRIVADA (TRUST WALLET / METAMASK):</label>
+              <input type="password" id="input-wallet-private-key" placeholder="0x..." class="input-field-auth" required style="width: 100%; font-size: 13px;" />
+            </div>
+            <div style="background: rgba(255, 183, 3, 0.08); border: 1px solid rgba(255, 183, 3, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 16px; font-size: 11px; color: #ffb703; line-height: 1.4;">
+              ⚠️ <strong>TRUST WALLET:</strong> En tu app Trust Wallet ve a <em>Ajustes > Billeteras > (...) > Mostrar Clave Privada (Polygon)</em>.
+            </div>
+            <div class="auth-error-msg" id="wallet-error-msg" style="margin-bottom: 12px;"></div>
+            <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-wallet">CIFRAR Y VINCULAR BILLETERA</button>
+          </form>
+        </div>
+
+        <!-- Vista 2: Conexión WalletConnect QR Code -->
+        <div id="view-wallet-qr" class="hidden" style="text-align: center; padding: 10px 0;">
+          <div style="background: rgba(0, 242, 254, 0.05); border: 1px dashed var(--accent-cyan); border-radius: 12px; padding: 20px; margin-bottom: 16px;">
+            <div style="font-size: 13px; font-weight: 700; color: var(--accent-cyan); margin-bottom: 12px;">
+              📲 Escanea desde Trust Wallet (WalletConnect)
+            </div>
+            <div style="background: #ffffff; padding: 12px; border-radius: 8px; display: inline-block; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+              <img id="qr-walletconnect-img" src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=wc:polymarket-m5-bot-polygon-bridge-session-2026" alt="Trust Wallet QR Code" style="width: 160px; height: 160px; display: block;" />
+            </div>
+            <p style="font-size: 11px; color: var(--text-muted); margin-top: 12px; line-height: 1.4;">
+              Abre <strong>Trust Wallet</strong> en tu teléfono > <strong>Ajustes ⚙️</strong> > <strong>WalletConnect</strong> y apunta tu cámara al código QR.
+            </p>
           </div>
-          <div class="form-group-vertical" style="margin-bottom: 20px;">
-            <label for="input-wallet-private-key" style="font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; display: block;">CLAVE PRIVADA (HEXADECIMAL 66 CARACTERES):</label>
-            <input type="password" id="input-wallet-private-key" placeholder="0x..." class="input-field-auth" required style="width: 100%;" />
-          </div>
-          <div style="background: rgba(255, 183, 3, 0.08); border: 1px solid rgba(255, 183, 3, 0.2); border-radius: 8px; padding: 12px; margin-bottom: 20px; font-size: 12px; color: #ffb703; line-height: 1.4;">
-            ⚠️ <strong>ADVERTENCIA DE SEGURIDAD:</strong> Asegúrate de estar ingresando una clave privada válida. No compartas tu clave con nadie. El bot utilizará esta clave únicamente para la ejecución automatizada de órdenes de compra/venta de acciones en Polymarket.
-          </div>
-          <div class="auth-error-msg" id="wallet-error-msg" style="margin-bottom: 16px;"></div>
-          <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-wallet">CIFRAR Y VINCULAR BILLETERA</button>
-        </form>
+          <button type="button" class="btn btn-secondary btn-full" id="btn-simulate-qr-connect" style="font-size: 12px;">
+            ⚡ CONECTAR DESDE TRUST WALLET APP
+          </button>
+        </div>
       </div>
     </div>
 

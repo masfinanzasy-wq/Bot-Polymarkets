@@ -4,7 +4,8 @@ Limitador de tasa de peticiones (Rate Limiter) por IP con ventana deslizante par
 import time
 from collections import defaultdict
 from typing import Dict, List
-from fastapi import Request, HTTPException, status
+from fastapi import Request, status
+from starlette.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from app.logger.logger import sys_logger
 
@@ -34,9 +35,9 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
             self.auth_store[client_ip] = history
             if len(history) >= self.auth_max_requests:
                 sys_logger.warning(f"RATE LIMIT BREACH: IP {client_ip} superó el límite de intentos de login.")
-                raise HTTPException(
+                return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                    detail="Demasiados intentos de autenticación. Intenta de nuevo en 1 minuto.",
+                    content={"detail": "Demasiados intentos de autenticación. Intenta de nuevo en 1 minuto."}
                 )
             self.auth_store[client_ip].append(now)
 
@@ -45,9 +46,9 @@ class RateLimiterMiddleware(BaseHTTPMiddleware):
         self.requests_store[client_ip] = history
         if len(history) >= self.max_requests:
             sys_logger.warning(f"RATE LIMIT BREACH: IP {client_ip} superó {self.max_requests} req/min.")
-            raise HTTPException(
+            return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Límite de tasa de peticiones alcanzado. Por favor, disminuye la frecuencia de solicitudes.",
+                content={"detail": "Límite de tasa de peticiones alcanzado. Por favor, disminuye la frecuencia de solicitudes."}
             )
         self.requests_store[client_ip].append(now)
 

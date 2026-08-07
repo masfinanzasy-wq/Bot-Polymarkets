@@ -104,7 +104,7 @@ async def get_current_user_profile(
     user = result.scalar_one_or_none()
 
     if not user:
-        raise HTTPException(status_code=44, detail="Usuario no encontrado.")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Usuario no encontrado.")
 
     return {
         "user_id": user.id,

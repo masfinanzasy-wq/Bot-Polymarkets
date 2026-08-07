@@ -1153,6 +1153,35 @@ function setupAuthEvents() {
       if (walletModal) walletModal.classList.add('hidden');
       return;
     }
+
+    // 9. Cambiar a Pestaña Clave Privada
+    const tabPrivateKeyBtn = e.target.closest('#btn-tab-privatekey');
+    if (tabPrivateKeyBtn) {
+      document.getElementById('btn-tab-privatekey').classList.add('active');
+      document.getElementById('btn-tab-qr').classList.remove('active');
+      document.getElementById('view-wallet-privatekey').classList.remove('hidden');
+      document.getElementById('view-wallet-qr').classList.add('hidden');
+      return;
+    }
+
+    // 10. Cambiar a Pestaña Trust Wallet QR
+    const tabQrBtn = e.target.closest('#btn-tab-qr');
+    if (tabQrBtn) {
+      document.getElementById('btn-tab-qr').classList.add('active');
+      document.getElementById('btn-tab-privatekey').classList.remove('active');
+      document.getElementById('view-wallet-qr').classList.remove('hidden');
+      document.getElementById('view-wallet-privatekey').classList.add('hidden');
+      return;
+    }
+
+    // 11. Simular Conexión Trust Wallet QR
+    const simulateQrBtn = e.target.closest('#btn-simulate-qr-connect');
+    if (simulateQrBtn) {
+      addLog('📲 Sesión Trust Wallet vinculada vía WalletConnect (Polygon Chain ID 137).');
+      const walletModal = document.getElementById('wallet-modal');
+      if (walletModal) walletModal.classList.add('hidden');
+      return;
+    }
   });
 }
 

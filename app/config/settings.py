@@ -44,6 +44,11 @@ class Settings(BaseSettings):
     REDIS_PORT: int = 6379
     REDIS_URL: str = "redis://localhost:6379/0"
 
+    # Security & Auth
+    JWT_SECRET_KEY: str = "polymarket_saas_jwt_secret_key_2026_production"
+    ENCRYPTION_MASTER_KEY: str = "polymarket_default_secret_key_2026"
+    ALLOWED_CORS_ORIGINS: str = "*"
+
     # Risk Parameters
     MAX_POSITION_SIZE_USD: float = 50.0
     MAX_DAILY_LOSS_USD: float = 200.0
