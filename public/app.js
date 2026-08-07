@@ -1112,6 +1112,33 @@ function setupAuthEvents() {
 
   // Delegación de Eventos Global en el Documento (Inmune a problemas de DOM dinámico)
   document.addEventListener('click', async (e) => {
+    // 0. Botón Salir / Cerrar Sesión
+    const logoutBtn = e.target.closest('#btn-logout');
+    if (logoutBtn) {
+      sessionStorage.removeItem('dashboard_authenticated');
+      sessionStorage.removeItem('is_admin');
+      localStorage.removeItem('saas_token');
+      localStorage.removeItem('is_admin');
+      localStorage.removeItem('linked_polygon_address');
+
+      const landingElem = document.getElementById('landing-page');
+      if (landingElem) landingElem.classList.remove('hidden');
+
+      const authModal = document.getElementById('auth-modal');
+      if (authModal) authModal.classList.add('hidden');
+
+      const adminBtn = document.getElementById('btn-open-admin');
+      if (adminBtn) adminBtn.style.display = 'none';
+
+      const balanceElem = document.getElementById('portfolio-balance');
+      if (balanceElem) balanceElem.textContent = '$1,000.00';
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      addLog('🔒 Sesión cerrada correctamente por el usuario.');
+      alert('🔒 Sesión cerrada correctamente.');
+      return;
+    }
+
     // 1. Abrir Modal Admin
     const openAdminBtn = e.target.closest('#btn-open-admin');
     if (openAdminBtn) {
