@@ -681,6 +681,24 @@ function setupAuthEvents() {
     });
   }
 
+  // Selector de Modo de Ejecución en vivo (Paper Trading vs Real Mainnet)
+  const selectExecMode = document.getElementById('select-execution-mode');
+  const envModeText = document.getElementById('env-mode-text');
+  if (selectExecMode) {
+    selectExecMode.addEventListener('change', (e) => {
+      const mode = e.target.value;
+      if (mode === 'REAL_MAINNET') {
+        if (envModeText) envModeText.textContent = 'POLYGON MAINNET REAL';
+        alert('🔥 MODO REAL ACTIVADO:\nLas órdenes se firmarán con tu billetera Polygon en vivo.');
+        addLog('⚠️ ENTORNO CAMBIADO: ENTORNO REAL (POLYGON MAINNET)');
+      } else {
+        if (envModeText) envModeText.textContent = 'PAPER TRADING';
+        alert('🛡️ MODO SIMULACIÓN ACTIVADO:\nLas órdenes se ejecutarán con saldo virtual.');
+        addLog('ENTORNO CAMBIADO: PAPER TRADING (SIMULACIÓN)');
+      }
+    });
+  }
+
   // Alternar pestañas del modal SaaS
   function switchTab(activeBtn, activeForm) {
     [tabAccess, tabLogin, tabRegister].forEach(btn => btn && btn.classList.remove('active'));
