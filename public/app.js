@@ -1215,26 +1215,25 @@ function setupAuthEvents() {
       return;
     }
 
-    // Toggle Landing Page
+    // Toggle Landing Page / Terminal
     const toggleLandingBtn = e.target.closest('#btn-toggle-landing');
     if (toggleLandingBtn) {
+      sessionStorage.setItem('dashboard_authenticated', 'true');
       const landingElem = document.getElementById('landing-page');
       if (landingElem) landingElem.classList.toggle('hidden');
       return;
     }
 
-    // Hero CTA: Ingresar al Terminal
+    // Hero CTA: Ingresar al Terminal (Acceso Directo Instantáneo)
     const heroTerminalBtn = e.target.closest('#btn-hero-enter-terminal');
     if (heroTerminalBtn) {
-      const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
-      if (isAuth) {
-        const landingElem = document.getElementById('landing-page');
-        if (landingElem) landingElem.classList.add('hidden');
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      } else {
-        const authModal = document.getElementById('auth-modal');
-        if (authModal) authModal.classList.remove('hidden');
-      }
+      sessionStorage.setItem('dashboard_authenticated', 'true');
+      const landingElem = document.getElementById('landing-page');
+      if (landingElem) landingElem.classList.add('hidden');
+      const authModal = document.getElementById('auth-modal');
+      if (authModal) authModal.classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      addLog('🚀 Acceso concedido al Terminal Dashboard Pro.');
       return;
     }
 
