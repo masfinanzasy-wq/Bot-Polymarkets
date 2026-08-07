@@ -1229,7 +1229,7 @@ function setupAuthEvents() {
     }
 
     // 11. Conectar Phantom / Trust Wallet / Web3 en 1 Clic
-    const simulateQrBtn = e.target.closest('#btn-simulate-qr-connect');
+    const simulateQrBtn = e.target.closest('#btn-simulate-qr-connect') || e.target.closest('#btn-quick-web3-connect');
     if (simulateQrBtn) {
       const errElem = document.getElementById('wallet-error-msg');
       const hasWeb3 = (typeof window.phantom !== 'undefined' && window.phantom.ethereum) || typeof window.ethereum !== 'undefined' || typeof window.trustwallet !== 'undefined';

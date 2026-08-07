@@ -305,14 +305,21 @@
 
         <!-- Selector de Método -->
         <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-          <button type="button" class="btn btn-tab active" id="btn-tab-privatekey" style="flex: 1; font-size: 12px; padding: 8px;">🔑 Clave Privada (Manual)</button>
+          <button type="button" class="btn btn-tab active" id="btn-tab-privatekey" style="flex: 1; font-size: 12px; padding: 8px;">🔑 Dirección / Clave (Manual)</button>
           <button type="button" class="btn btn-tab" id="btn-tab-qr" style="flex: 1; font-size: 12px; padding: 8px;">📲 Web3 (Phantom / Trust QR)</button>
         </div>
 
-        <!-- Vista 1: Clave Privada Directa -->
+        <!-- Botón de Conexión Automática Web3 Destacado -->
+        <div style="margin-bottom: 16px;">
+          <button type="button" class="btn btn-hero-primary btn-full" id="btn-quick-web3-connect" style="padding: 10px; font-size: 13px; font-weight: 800; background: linear-gradient(135deg, #00f2fe 0%, #9d4edd 100%);">
+            ⚡ AUTO-DETECTAR Y CONECTAR WALLET WEB3
+          </button>
+        </div>
+
+        <!-- Vista 1: Dirección Pública o Clave Privada Directa -->
         <div id="view-wallet-privatekey">
-          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px; line-height: 1.4;">
-            Ingresa tu dirección pública de Polygon y tu clave privada de <strong>Phantom / Trust Wallet / MetaMask</strong>. Se cifrará en la bóveda de seguridad <strong>AES-256</strong> para la firma de operaciones.
+          <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px; line-height: 1.4;">
+            Ingresa tu dirección pública de Polygon o tu clave privada / frase semilla de 12 palabras de <strong>Phantom / Trust Wallet / MetaMask</strong>.
           </p>
 
           <form id="wallet-binding-form" onsubmit="return false;">
@@ -321,14 +328,14 @@
               <input type="text" id="input-wallet-address" placeholder="0x..." class="input-field-auth" required style="width: 100%; font-size: 13px;" />
             </div>
             <div class="form-group-vertical" style="margin-bottom: 16px;">
-              <label for="input-wallet-private-key" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">CLAVE PRIVADA (TRUST WALLET / METAMASK):</label>
-              <input type="password" id="input-wallet-private-key" placeholder="0x..." class="input-field-auth" required style="width: 100%; font-size: 13px;" />
+              <label for="input-wallet-private-key" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">CLAVE PRIVADA O 12 PALABRAS (OPCIONAL):</label>
+              <input type="password" id="input-wallet-private-key" placeholder="0x... o 12 palabras clave (Opcional)" class="input-field-auth" style="width: 100%; font-size: 13px;" />
             </div>
-            <div style="background: rgba(255, 183, 3, 0.08); border: 1px solid rgba(255, 183, 3, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 16px; font-size: 11px; color: #ffb703; line-height: 1.4;">
-              ⚠️ <strong>TRUST WALLET:</strong> En tu app Trust Wallet ve a <em>Ajustes > Billeteras > (...) > Mostrar Clave Privada (Polygon)</em>.
+            <div style="background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 16px; font-size: 11px; color: var(--accent-cyan); line-height: 1.4;">
+              💡 <strong>OPCIÓN RÁPIDA:</strong> Si solo pegas tu <strong>Dirección Pública (0x...)</strong>, el bot vinculará tu cuenta de inmediato para seguimiento de saldo y señales.
             </div>
             <div class="auth-error-msg" id="wallet-error-msg" style="margin-bottom: 12px;"></div>
-            <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-wallet">CIFRAR Y VINCULAR BILLETERA</button>
+            <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-wallet">VINCULAR BILLETERA AHORA</button>
           </form>
         </div>
 
