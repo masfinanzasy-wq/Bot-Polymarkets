@@ -2,8 +2,20 @@
   "version": 2,
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/api/(.*)",
       "destination": "/api/index.py"
+    },
+    {
+      "source": "/styles.css",
+      "destination": "/app/web/styles.css"
+    },
+    {
+      "source": "/app.js",
+      "destination": "/app/web/app.js"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/app/web/index.html"
     }
   ]
 }
