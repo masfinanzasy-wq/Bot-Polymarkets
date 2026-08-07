@@ -55,6 +55,7 @@
         </div>
         <button class="btn btn-secondary btn-sm" id="btn-toggle-landing" style="margin-left: 8px;">🌐 LANDING PAGE</button>
         <button class="btn btn-tab active btn-sm" id="btn-open-plans" style="margin-left: 8px;">💎 PLANES & SUSCRIPCIÓN</button>
+        <button class="btn btn-secondary btn-sm" id="btn-open-settings" style="margin-left: 8px;">⚙️ CONFIGURACIÓN</button>
         <button class="btn btn-secondary btn-sm" id="btn-open-wallet" style="margin-left: 8px;">🔑 VINCULAR WALLET</button>
         <button class="btn btn-action btn-sm" id="btn-open-admin" style="display: none; margin-left: 8px;">⚙️ CONTROL MAESTRO SAAS</button>
         <button class="btn btn-secondary btn-sm" id="btn-logout" style="margin-left: 8px;">🔒 SALIR</button>
@@ -447,8 +448,93 @@
           <button class="btn btn-tab active btn-full btn-assign-plan" data-targetplan="WHALE">
             👑 ASIGNAR PLAN WHALE VIP ($149 / mes)
           </button>
+    <!-- Modal de Configuración Global de la Plataforma -->
+    <div class="auth-overlay hidden" id="settings-modal" style="z-index: 10003;">
+      <div class="glass-card pricing-card-container" style="max-width: 680px; text-align: left; padding: 32px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+          <h2 style="font-size: 18px; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 8px;">
+            <span>⚙️ CONFIGURACIÓN GLOBAL DE LA PLATAFORMA</span>
+          </h2>
+          <button class="modal-close-btn" id="btn-close-settings">✕</button>
         </div>
-        <div id="plan-modal-msg" style="margin-top: 14px; font-size: 12px; text-align: center; color: var(--accent-emerald);"></div>
+        <p class="auth-subtitle" style="margin-bottom: 20px;">Ajustes del motor cuantitativo M5, nodos RPC, claves API y alertas de Telegram</p>
+
+        <!-- Tabs de Configuración -->
+        <div class="auth-tabs" style="margin-bottom: 20px;">
+          <button type="button" class="auth-tab-btn active" id="tab-set-trading">🎯 Estrategia & Riesgo</button>
+          <button type="button" class="auth-tab-btn" id="tab-set-api">🔌 APIs & Polygon RPC</button>
+          <button type="button" class="auth-tab-btn" id="tab-set-notifications">🔔 Telegram & Alertas</button>
+        </div>
+
+        <form id="settings-global-form" onsubmit="return false;">
+          <!-- Pestaña 1: Trading & Riesgo -->
+          <div id="panel-set-trading">
+            <div class="form-group-vertical">
+              <label for="set-execution-mode">ENTORNO DE EJECUCIÓN:</label>
+              <select id="set-execution-mode" class="input-field-auth" style="font-size: 13px;">
+                <option value="PAPER_TRADING">🛡️ PAPER TRADING (SIMULACIÓN EN VIVO)</option>
+                <option value="REAL_MAINNET">🔥 ENTORNO REAL (POLYGON MAINNET)</option>
+              </select>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div class="form-group-vertical">
+                <label for="set-trade-amount">CAPITAL POR OPERACIÓN ($ USDC):</label>
+                <input type="number" id="set-trade-amount" value="10" step="5" class="input-field-auth" style="font-size: 13px;" />
+              </div>
+              <div class="form-group-vertical">
+                <label for="set-min-ev">FILTRO EV MÍNIMO (+%):</label>
+                <input type="number" id="set-min-ev" value="5" step="1" class="input-field-auth" style="font-size: 13px;" />
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+              <div class="form-group-vertical">
+                <label for="set-stop-loss">STOP LOSS DIARIO ($ MAX PÉRDIDA):</label>
+                <input type="number" id="set-stop-loss" value="50" step="10" class="input-field-auth" style="font-size: 13px;" />
+              </div>
+              <div class="form-group-vertical">
+                <label for="set-take-profit">TAKE PROFIT DIARIO ($ META):</label>
+                <input type="number" id="set-take-profit" value="100" step="20" class="input-field-auth" style="font-size: 13px;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Pestaña 2: APIs & Conexiones -->
+          <div id="panel-set-api" class="hidden">
+            <div class="form-group-vertical">
+              <label for="set-polygon-rpc">NODE RPC PROVIDER (POLYGON MAINNET):</label>
+              <input type="text" id="set-polygon-rpc" value="https://polygon-rpc.com" class="input-field-auth" style="font-size: 13px;" />
+            </div>
+            <div class="form-group-vertical">
+              <label for="set-binance-ws">BINANCE STREAMING WEBSOCKET HOST:</label>
+              <input type="text" id="set-binance-ws" value="wss://stream.binance.com:9443/ws/btcusdt@trade" class="input-field-auth" style="font-size: 13px;" />
+            </div>
+            <div class="form-group-vertical">
+              <label for="set-polymarket-host">POLYMARKET CLOB API HOST:</label>
+              <input type="text" id="set-polymarket-host" value="https://clob.polymarket.com" class="input-field-auth" style="font-size: 13px;" />
+            </div>
+          </div>
+
+          <!-- Pestaña 3: Telegram & Notificaciones -->
+          <div id="panel-set-notifications" class="hidden">
+            <div class="form-group-vertical">
+              <label for="set-telegram-token">TELEGRAM BOT TOKEN (OPCIONAL):</label>
+              <input type="text" id="set-telegram-token" placeholder="123456789:ABCdefGhIJKlmNoPQRsTUVwxyZ..." class="input-field-auth" style="font-size: 13px;" />
+            </div>
+            <div class="form-group-vertical">
+              <label for="set-telegram-chatid">TELEGRAM CHAT ID (OPCIONAL):</label>
+              <input type="text" id="set-telegram-chatid" placeholder="987654321" class="input-field-auth" style="font-size: 13px;" />
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px; margin-bottom: 14px;">
+              <input type="checkbox" id="set-audio-alerts" checked style="width: 16px; height: 16px; accent-color: var(--accent-cyan);" />
+              <label for="set-audio-alerts" style="font-size: 12px; color: var(--text-muted); cursor: pointer;">Reproducir alerta sonora al ejecutar operaciones en vivo</label>
+            </div>
+          </div>
+
+          <div id="settings-status-msg" style="margin-top: 14px; font-size: 12px; text-align: center; color: var(--accent-emerald); min-height: 20px;"></div>
+          <button type="submit" class="btn btn-tab active btn-full" id="btn-save-settings" style="margin-top: 10px; font-weight: 800;">
+            💾 GUARDAR Y APLICAR CONFIGURACIÓN
+          </button>
+        </form>
       </div>
     </div>
 
