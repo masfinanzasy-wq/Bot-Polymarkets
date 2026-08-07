@@ -680,6 +680,12 @@ function checkAuthentication() {
   const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
   const isAdmin = sessionStorage.getItem('is_admin') === 'true' || localStorage.getItem('is_admin') === 'true';
 
+  const storedAddr = localStorage.getItem('linked_polygon_address');
+  if (storedAddr) {
+    updateWalletHeaderBadge(storedAddr);
+    fetchLiveWalletBalance(storedAddr);
+  }
+
   if (isAuth) {
     if (authModal) authModal.classList.add('hidden');
     const landingElem = document.getElementById('landing-page');
