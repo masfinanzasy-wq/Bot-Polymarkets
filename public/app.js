@@ -613,10 +613,42 @@ function setupEvents() {
   });
 }
 
+function updateWalletHeaderBadge(address) {
+  const btnWallet = document.getElementById('btn-open-wallet');
+  const inputAddr = document.getElementById('input-wallet-address');
+  const walletErrorMsg = document.getElementById('wallet-error-msg');
+
+  if (address && address.startsWith('0x')) {
+    const shortAddr = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+    if (btnWallet) {
+      btnWallet.textContent = `🟢 WALLET: ${shortAddr}`;
+      btnWallet.style.borderColor = 'var(--accent-emerald)';
+      btnWallet.style.color = 'var(--accent-emerald)';
+      btnWallet.style.background = 'rgba(0, 230, 118, 0.1)';
+    }
+    if (inputAddr && !inputAddr.value) {
+      inputAddr.value = address;
+    }
+    if (walletErrorMsg && (!walletErrorMsg.textContent || walletErrorMsg.textContent.includes('✓'))) {
+      walletErrorMsg.style.color = 'var(--accent-emerald)';
+      walletErrorMsg.textContent = `✓ Billetera actualmente vinculada: ${shortAddr}`;
+    }
+  } else {
+    if (btnWallet) {
+      btnWallet.textContent = `🔑 VINCULAR WALLET`;
+      btnWallet.style.borderColor = '';
+      btnWallet.style.color = '';
+      btnWallet.style.background = '';
+    }
+  }
+}
+
 async function fetchLiveWalletBalance(address) {
   const balanceElem = document.getElementById('portfolio-balance');
   const pnlElem = document.getElementById('portfolio-pnl');
   if (!address || !balanceElem) return;
+
+  updateWalletHeaderBadge(address);
 
   try {
     const res = await fetch(`/api/v1/wallet/balance/${address}`);
