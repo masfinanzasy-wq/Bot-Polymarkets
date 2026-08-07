@@ -1181,36 +1181,37 @@ function setupAuthEvents() {
       return;
     }
 
-    // 11. Conectar Trust Wallet / Web3 en 1 Clic
+    // 11. Conectar Phantom / Trust Wallet / Web3 en 1 Clic
     const simulateQrBtn = e.target.closest('#btn-simulate-qr-connect');
     if (simulateQrBtn) {
       const errElem = document.getElementById('wallet-error-msg');
-      if (typeof window.ethereum !== 'undefined' || typeof window.trustwallet !== 'undefined') {
+      const hasWeb3 = (typeof window.phantom !== 'undefined' && window.phantom.ethereum) || typeof window.ethereum !== 'undefined' || typeof window.trustwallet !== 'undefined';
+      if (hasWeb3) {
         try {
-          const web3Provider = window.trustwallet || window.ethereum;
+          const web3Provider = (window.phantom && window.phantom.ethereum) || window.trustwallet || window.ethereum;
           const provider = new ethers.providers.Web3Provider(web3Provider);
           const accounts = await provider.send("eth_requestAccounts", []);
           if (accounts && accounts.length > 0) {
             const userAddr = accounts[0];
             const addrInput = document.getElementById('input-wallet-address');
             if (addrInput) addrInput.value = userAddr;
-            addLog(`📲 Trust Wallet Web3 conectada exitosamente: ${userAddr.substring(0, 6)}...${userAddr.substring(userAddr.length - 4)}`);
-            alert(`✓ Billetera Trust Wallet conectada exitosamente: ${userAddr}`);
+            addLog(`📲 Billetera Web3 conectada exitosamente: ${userAddr.substring(0, 6)}...${userAddr.substring(userAddr.length - 4)}`);
+            alert(`✓ Billetera conectada exitosamente: ${userAddr}`);
             const walletModal = document.getElementById('wallet-modal');
             if (walletModal) walletModal.classList.add('hidden');
           }
         } catch (err) {
           if (errElem) errElem.textContent = `❌ Conexión cancelada: ${err.message || 'El usuario rechazó la conexión.'}`;
-          addLog(`📲 Error al conectar Trust Wallet Web3: ${err.message || 'Petición rechazada.'}`);
+          addLog(`📲 Error al conectar Billetera Web3: ${err.message || 'Petición rechazada.'}`);
         }
       } else {
         // Fallback interactivo si no hay extensión Web3 en el navegador
-        const promptAddress = prompt("📲 Ingrese su Dirección Pública de Polygon (USDC) de Trust Wallet:\n(Ejemplo: 0x742d35Cc6634C0532925a3b844Bc454e4438f44e)", "0x");
+        const promptAddress = prompt("📲 Ingrese su Dirección Pública de Polygon (USDC) de Phantom / Trust Wallet:\n(Ejemplo: 0x742d35Cc6634C0532925a3b844Bc454e4438f44e)", "0x");
         if (promptAddress && promptAddress.startsWith("0x") && promptAddress.length >= 40) {
           const addrInput = document.getElementById('input-wallet-address');
           if (addrInput) addrInput.value = promptAddress;
-          addLog(`📲 Dirección de Trust Wallet vinculada: ${promptAddress.substring(0, 6)}...${promptAddress.substring(promptAddress.length - 4)}`);
-          alert(`✓ Dirección de Trust Wallet vinculada correctamente:\n${promptAddress}`);
+          addLog(`📲 Dirección de Billetera vinculada: ${promptAddress.substring(0, 6)}...${promptAddress.substring(promptAddress.length - 4)}`);
+          alert(`✓ Dirección de Billetera vinculada correctamente:\n${promptAddress}`);
           const walletModal = document.getElementById('wallet-modal');
           if (walletModal) walletModal.classList.add('hidden');
         } else if (promptAddress !== null) {
