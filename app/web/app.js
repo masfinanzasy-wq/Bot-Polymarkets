@@ -1138,6 +1138,46 @@ function setupAuthEvents() {
       return;
     }
 
+    // Toggle Landing Page
+    const toggleLandingBtn = e.target.closest('#btn-toggle-landing');
+    if (toggleLandingBtn) {
+      const landingElem = document.getElementById('landing-page');
+      if (landingElem) landingElem.classList.toggle('hidden');
+      return;
+    }
+
+    // Hero CTA: Ingresar al Terminal
+    const heroTerminalBtn = e.target.closest('#btn-hero-enter-terminal');
+    if (heroTerminalBtn) {
+      const landingElem = document.getElementById('landing-page');
+      if (landingElem) landingElem.classList.add('hidden');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
+    // Hero CTA: Ver Planes
+    const heroPlansBtn = e.target.closest('#btn-hero-plans');
+    if (heroPlansBtn) {
+      const pricingModal = document.getElementById('pricing-modal');
+      if (pricingModal) pricingModal.classList.remove('hidden');
+      return;
+    }
+
+    // Hero CTA: Vincular Billetera
+    const heroWalletBtn = e.target.closest('#btn-hero-wallet');
+    if (heroWalletBtn) {
+      const walletModal = document.getElementById('wallet-modal');
+      if (walletModal) walletModal.classList.remove('hidden');
+      return;
+    }
+
+    // FAQ Accordion
+    const faqItem = e.target.closest('.faq-item');
+    if (faqItem) {
+      faqItem.classList.toggle('active');
+      return;
+    }
+
     // 7. Abrir Modal de Vinculación de Billetera
     const openWalletBtn = e.target.closest('#btn-open-wallet');
     if (openWalletBtn) {

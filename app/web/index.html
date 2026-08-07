@@ -53,12 +53,124 @@
           <span class="icon">🛡️</span>
           <span>MODO: <strong id="env-mode-text">PAPER TRADING</strong></span>
         </div>
+        <button class="btn btn-secondary btn-sm" id="btn-toggle-landing" style="margin-left: 8px;">🌐 LANDING PAGE</button>
         <button class="btn btn-tab active btn-sm" id="btn-open-plans" style="margin-left: 8px;">💎 PLANES & SUSCRIPCIÓN</button>
         <button class="btn btn-secondary btn-sm" id="btn-open-wallet" style="margin-left: 8px;">🔑 VINCULAR WALLET</button>
         <button class="btn btn-action btn-sm" id="btn-open-admin" style="display: none; margin-left: 8px;">⚙️ CONTROL MAESTRO SAAS</button>
         <button class="btn btn-secondary btn-sm" id="btn-logout" style="margin-left: 8px;">🔒 SALIR</button>
       </div>
     </header>
+
+    <!-- LANDING PAGE SECTION -->
+    <main class="landing-container" id="landing-page">
+      <section class="landing-hero">
+        <div class="hero-badge">
+          <span>⚡ PLATAFORMA CUANTITATIVA EN POLYMARKET M5</span>
+        </div>
+        <h1 class="hero-title">
+          Predicción & Trading de Alta Frecuencia <br/>
+          en <span class="gradient-text">Mercados Binarios M5</span>
+        </h1>
+        <p class="hero-subtitle">
+          Sincroniza señales spot de Binance en tiempo real con el libro de órdenes CLOB de Polymarket. Algoritmos cuantitativos de Expected Value (EV), Kelly Criterion y ejecuciones automatizadas non-custodial cifradas con <strong>AES-256</strong>.
+        </p>
+        <div class="hero-cta-group">
+          <button type="button" class="btn-hero-primary" id="btn-hero-enter-terminal">🚀 INGRESAR AL TERMINAL EN VIVO</button>
+          <button type="button" class="btn-hero-secondary" id="btn-hero-plans">💎 VER PLANES SAAS</button>
+          <button type="button" class="btn-hero-secondary" id="btn-hero-wallet">🔑 VINCULAR BILLETERA</button>
+        </div>
+      </section>
+
+      <!-- Stats Ribbon -->
+      <section class="landing-stats-ribbon">
+        <div class="glass-card stat-item-card">
+          <div class="stat-number">+18.4%</div>
+          <div class="stat-label">Expected Value (EV) Promedio</div>
+        </div>
+        <div class="glass-card stat-item-card">
+          <div class="stat-number">&lt; 50 ms</div>
+          <div class="stat-label">Latencia Transmisión WebSocket</div>
+        </div>
+        <div class="glass-card stat-item-card">
+          <div class="stat-number">84.2%</div>
+          <div class="stat-label">Acierto en Tendencia M5</div>
+        </div>
+        <div class="glass-card stat-item-card">
+          <div class="stat-number">AES-256</div>
+          <div class="stat-label">Bóveda Cifrada Non-Custodial</div>
+        </div>
+      </section>
+
+      <!-- Features Grid -->
+      <h2 class="landing-section-title">Tecnología Cuantitativa de Grado Institucional</h2>
+      <p class="landing-section-sub">Diseñado para traders que buscan velocidad, precisión matemática y control de riesgo.</p>
+      
+      <section class="features-grid">
+        <div class="glass-card feature-card">
+          <div class="feature-icon-box">📈</div>
+          <h3>Streaming Spot Binance M5</h3>
+          <p>Captura de ticks a 200ms con cálculo dinámico de EMA 9, EMA 21, VWAP y ratio Order Flow Delta para determinar presión compradora/vendedora.</p>
+        </div>
+        <div class="glass-card feature-card">
+          <div class="feature-icon-box">🎯</div>
+          <h3>Motor Expected Value (EV)</h3>
+          <p>Fórmulas probabilísticas avanzadas que cruzan las probabilidades implícitas de Polymarket con la tendencia spot para encontrar ventajas matemáticas.</p>
+        </div>
+        <div class="glass-card feature-card">
+          <div class="feature-icon-box">🔒</div>
+          <h3>Bóveda Cifrada Non-Custodial</h3>
+          <p>Tus fondos permanecen siempre en tu billetera personal (Phantom, Trust Wallet, MetaMask). Firma de órdenes mediante cifrado AES-256 Fernet.</p>
+        </div>
+        <div class="glass-card feature-card">
+          <div class="feature-icon-box">🛡️</div>
+          <h3>Paper Trading & Sombra Real</h3>
+          <p>Simulador en tiempo real sin arriesgar capital. Prueba estrategias con capital virtual antes de pasar a ejecución real en Polygon Mainnet.</p>
+        </div>
+      </section>
+
+      <!-- FAQ Section -->
+      <h2 class="landing-section-title">Preguntas Frecuentes</h2>
+      <p class="landing-section-sub">Todo lo que necesitas saber antes de comenzar.</p>
+
+      <section class="faq-container">
+        <div class="glass-card faq-item">
+          <div class="faq-question">
+            <span>¿Qué es Polymarket M5 Bot?</span>
+            <span>+</span>
+          </div>
+          <div class="faq-answer">
+            Es un bot profesional de predicción cuantitativa y trading automatizado especializado en opciones binarias de 5 minutos (M5) de BTC/USDT en Polymarket.
+          </div>
+        </div>
+        <div class="glass-card faq-item">
+          <div class="faq-question">
+            <span>¿El bot custodia mis fondos?</span>
+            <span>+</span>
+          </div>
+          <div class="faq-answer">
+            No. El bot es 100% Non-Custodial. Tus USDC permanecen en tu billetera personal (Trust Wallet, Phantom, MetaMask) en la red Polygon. El bot solo firma transacciones locales autorizadas por ti.
+          </div>
+        </div>
+        <div class="glass-card faq-item">
+          <div class="faq-question">
+            <span>¿Cómo me conecto con Trust Wallet o Phantom?</span>
+            <span>+</span>
+          </div>
+          <div class="faq-answer">
+            Puedes conectar tu billetera en 1 clic utilizando el navegador Web3 interno de tu app de Trust Wallet/Phantom o ingresando tu dirección pública y clave privada cifrada en la bóveda AES-256.
+          </div>
+        </div>
+        <div class="glass-card faq-item">
+          <div class="faq-question">
+            <span>¿Cómo retiro mis ganancias?</span>
+            <span>+</span>
+          </div>
+          <div class="faq-answer">
+            Las ganancias en USDC se acreditan de inmediato a tu billetera Polygon personal al finalizar cada mercado. Puedes transferirlas a tu exchange (Binance, Coinbase) o retirarlas a tu banco local en cualquier momento.
+          </div>
+        </div>
+      </section>
+    </main>
 
     <!-- Modal de Pantalla de Bloqueo / Clave de Acceso y SaaS Auth -->
     <div class="auth-overlay" id="auth-modal">
