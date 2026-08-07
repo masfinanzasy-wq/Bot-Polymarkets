@@ -1174,12 +1174,30 @@ function setupAuthEvents() {
       return;
     }
 
-    // 11. Simular Conexión Trust Wallet QR
+    // 11. Conectar Trust Wallet / Web3 en 1 Clic
     const simulateQrBtn = e.target.closest('#btn-simulate-qr-connect');
     if (simulateQrBtn) {
-      addLog('📲 Sesión Trust Wallet vinculada vía WalletConnect (Polygon Chain ID 137).');
-      const walletModal = document.getElementById('wallet-modal');
-      if (walletModal) walletModal.classList.add('hidden');
+      if (typeof window.ethereum !== 'undefined' || typeof window.trustwallet !== 'undefined') {
+        try {
+          const web3Provider = window.trustwallet || window.ethereum;
+          const provider = new ethers.providers.Web3Provider(web3Provider);
+          const accounts = await provider.send("eth_requestAccounts", []);
+          if (accounts && accounts.length > 0) {
+            const userAddr = accounts[0];
+            const addrInput = document.getElementById('input-wallet-address');
+            if (addrInput) addrInput.value = userAddr;
+            addLog(`📲 Trust Wallet Web3 conectada exitosamente: ${userAddr.substring(0, 6)}...${userAddr.substring(userAddr.length - 4)}`);
+            const walletModal = document.getElementById('wallet-modal');
+            if (walletModal) walletModal.classList.add('hidden');
+          }
+        } catch (err) {
+          addLog(`📲 Error al conectar Trust Wallet Web3: ${err.message || 'Petición rechazada por el usuario.'}`);
+        }
+      } else {
+        addLog('📲 Modo Simulación: Sesión Trust Wallet vinculada vía WalletConnect (Polygon Chain ID 137).');
+        const walletModal = document.getElementById('wallet-modal');
+        if (walletModal) walletModal.classList.add('hidden');
+      }
       return;
     }
   });
