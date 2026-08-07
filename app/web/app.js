@@ -617,13 +617,14 @@ function setupEvents() {
 function checkAuthentication() {
   const authModal = document.getElementById('auth-modal');
   const btnOpenAdmin = document.getElementById('btn-open-admin');
+
   const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
   const isAdmin = sessionStorage.getItem('is_admin') === 'true' || localStorage.getItem('is_admin') === 'true';
 
-  if (isAuth && authModal) {
-    authModal.classList.add('hidden');
-  } else if (authModal) {
-    authModal.classList.remove('hidden');
+  if (isAuth) {
+    if (authModal) authModal.classList.add('hidden');
+    const landingElem = document.getElementById('landing-page');
+    if (landingElem) landingElem.classList.add('hidden');
   }
 
   // EL BOTÓN DE CONTROL MAESTRO SOLO SE MUESTRA SI ES UN ADMINISTRADOR
@@ -1149,9 +1150,15 @@ function setupAuthEvents() {
     // Hero CTA: Ingresar al Terminal
     const heroTerminalBtn = e.target.closest('#btn-hero-enter-terminal');
     if (heroTerminalBtn) {
-      const landingElem = document.getElementById('landing-page');
-      if (landingElem) landingElem.classList.add('hidden');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
+      if (isAuth) {
+        const landingElem = document.getElementById('landing-page');
+        if (landingElem) landingElem.classList.add('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        const authModal = document.getElementById('auth-modal');
+        if (authModal) authModal.classList.remove('hidden');
+      }
       return;
     }
 
