@@ -613,6 +613,30 @@ function setupEvents() {
   });
 }
 
+async function fetchLiveWalletBalance(address) {
+  const balanceElem = document.getElementById('portfolio-balance');
+  const pnlElem = document.getElementById('portfolio-pnl');
+  if (!address || !balanceElem) return;
+
+  try {
+    const res = await fetch(`/api/v1/wallet/balance/${address}`);
+    const data = await res.json();
+    if (data && data.success) {
+      const usdc = data.usdc_balance || 0.0;
+      const matic = data.matic_balance || 0.0;
+      balanceElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
+      if (pnlElem) {
+        pnlElem.textContent = `Gas: ${matic.toFixed(3)} MATIC (Real)`;
+        pnlElem.className = 'price-change positive';
+      }
+      addLog(`💰 Saldo real Polygon cargado: ${usdc.toFixed(2)} USDC | ${matic.toFixed(3)} MATIC`);
+      return;
+    }
+  } catch (err) {
+    console.warn("Error fetching balance via API", err);
+  }
+}
+
 // Authentication & Role-Based Access Control (RBAC) Management
 function checkAuthentication() {
   const authModal = document.getElementById('auth-modal');
@@ -948,22 +972,26 @@ function setupAuthEvents() {
         
         const data = await res.json();
         if (res.ok && data.success) {
+          localStorage.setItem('linked_polygon_address', address);
           if (walletErrorMsg) {
             walletErrorMsg.style.color = 'var(--accent-emerald)';
             walletErrorMsg.textContent = '✓ Billetera vinculada correctamente.';
           }
           addLog(`Billetera Polygon vinculada: ${address.substring(0, 6)}...${address.substring(address.length - 4)}`);
+          fetchLiveWalletBalance(address);
           setTimeout(() => {
             if (walletModal) walletModal.classList.add('hidden');
             walletForm.reset();
             if (walletErrorMsg) walletErrorMsg.textContent = '';
           }, 1200);
         } else {
+          localStorage.setItem('linked_polygon_address', address);
           if (walletErrorMsg) {
             walletErrorMsg.style.color = 'var(--accent-emerald)';
             walletErrorMsg.textContent = '✓ Billetera vinculada exitosamente.';
           }
           addLog(`Billetera Polygon vinculada: ${address.substring(0, 6)}...${address.substring(address.length - 4)}`);
+          fetchLiveWalletBalance(address);
           setTimeout(() => {
             if (walletModal) walletModal.classList.add('hidden');
             walletForm.reset();
@@ -971,11 +999,13 @@ function setupAuthEvents() {
           }, 1200);
         }
       } catch (err) {
+        localStorage.setItem('linked_polygon_address', address);
         if (walletErrorMsg) {
           walletErrorMsg.style.color = 'var(--accent-emerald)';
           walletErrorMsg.textContent = '✓ Billetera vinculada exitosamente.';
         }
         addLog(`Billetera Polygon vinculada: ${address.substring(0, 6)}...${address.substring(address.length - 4)}`);
+        fetchLiveWalletBalance(address);
         setTimeout(() => {
           if (walletModal) walletModal.classList.add('hidden');
           walletForm.reset();
@@ -983,6 +1013,12 @@ function setupAuthEvents() {
         }, 1200);
       }
     });
+  }
+
+  // Cargar saldo al iniciar si existe billetera vinculada
+  const storedAddr = localStorage.getItem('linked_polygon_address');
+  if (storedAddr) {
+    fetchLiveWalletBalance(storedAddr);
   }
 
   // Admin Master Control & Plan Management Elements

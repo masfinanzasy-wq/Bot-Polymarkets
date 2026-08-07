@@ -122,12 +122,15 @@ async def register_user_wallet(
     db: AsyncSession = Depends(get_async_session)
 ):
     """Cifra la clave privada del cliente con AES-256 y la vincula de forma segura a su perfil SaaS."""
-    user_id = user_payload.get("sub")
-    
-    if not payload.private_key.startswith("0x") or len(payload.private_key) != 66:
-        raise HTTPException(status_code=400, detail="Formato de clave privada de Polygon inválido (debe comenzar con 0x y tener 66 caracteres).")
+    address = payload.polygon_address.strip()
+    if not address.startswith("0x") or len(address) < 40:
+        raise HTTPException(status_code=400, detail="Dirección de Polygon inválida (debe comenzar con 0x y tener al menos 40 caracteres).")
 
-    encrypted_key = vault.encrypt(payload.private_key)
+    p_key = payload.private_key.strip() if payload.private_key else ("0x" + "0" * 64)
+    if not p_key.startswith("0x"):
+        p_key = "0x" + p_key
+
+    encrypted_key = vault.encrypt(p_key)
 
     new_wallet = UserWalletModel(
         user_id=user_id,

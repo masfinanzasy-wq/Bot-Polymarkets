@@ -183,6 +183,50 @@ async def health_check():
         "active_ws_clients": len(manager.active_connections)
     }
 
+@app.get("/api/v1/wallet/balance/{address}")
+async def get_polygon_wallet_balance(address: str):
+    """Consulta el saldo real de USDC y MATIC en la red Polygon Mainnet."""
+    address = address.strip()
+    if not address.startswith("0x") or len(address) < 40:
+        return JSONResponse({"error": "Dirección de Polygon inválida"}, status_code=400)
+
+    try:
+        import httpx
+        rpc_url = "https://polygon-rpc.com"
+        async with httpx.AsyncClient(timeout=6.0) as client:
+            clean_addr = address[2:].zfill(64)
+            data_call = "0x70a08231" + clean_addr
+
+            p_matic = {"jsonrpc": "2.0", "method": "eth_getBalance", "params": [address, "latest"], "id": 1}
+            p_usdc_nat = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", "data": data_call}, "latest"], "id": 2}
+            p_usdc_brg = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", "data": data_call}, "latest"], "id": 3}
+
+            r1, r2, r3 = await asyncio.gather(
+                client.post(rpc_url, json=p_matic),
+                client.post(rpc_url, json=p_usdc_nat),
+                client.post(rpc_url, json=p_usdc_brg),
+                return_exceptions=True
+            )
+
+            matic_hex = r1.json().get("result", "0x0") if not isinstance(r1, Exception) else "0x0"
+            usdc_nat_hex = r2.json().get("result", "0x0") if not isinstance(r2, Exception) else "0x0"
+            usdc_brg_hex = r3.json().get("result", "0x0") if not isinstance(r3, Exception) else "0x0"
+
+            matic_val = int(matic_hex, 16) / 1e18 if matic_hex and matic_hex != "0x" else 0.0
+            usdc_nat_val = int(usdc_nat_hex, 16) / 1e6 if usdc_nat_hex and usdc_nat_hex != "0x" else 0.0
+            usdc_brg_val = int(usdc_brg_hex, 16) / 1e6 if usdc_brg_hex and usdc_brg_hex != "0x" else 0.0
+
+            total_usdc = usdc_nat_val + usdc_brg_val
+
+            return {
+                "address": address,
+                "usdc_balance": round(total_usdc, 2),
+                "matic_balance": round(matic_val, 4),
+                "success": True
+            }
+    except Exception as e:
+        return {"address": address, "usdc_balance": 0.0, "matic_balance": 0.0, "success": False, "detail": str(e)}
+
 @app.websocket("/ws/live")
 async def websocket_endpoint(websocket: WebSocket):
     """Endpoint WebSocket para recibir transmisiones en directo de indicadores y señales."""
