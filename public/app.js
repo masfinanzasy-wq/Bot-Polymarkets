@@ -624,6 +624,9 @@ async function fetchLiveWalletBalance(address) {
     if (data && data.success) {
       const usdc = data.usdc_balance || 0.0;
       const matic = data.matic_balance || 0.0;
+      const titleCard = balanceElem.closest('.kpi-card')?.querySelector('.title');
+      if (titleCard) titleCard.textContent = 'PORTFOLIO BILLETERA REAL (POLYGON)';
+
       balanceElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
       if (pnlElem) {
         pnlElem.textContent = `Gas: ${matic.toFixed(3)} MATIC (Real)`;
