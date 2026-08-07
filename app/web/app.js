@@ -820,6 +820,7 @@ function setupAuthEvents() {
           localStorage.setItem('saas_token', data.token);
           sessionStorage.setItem('dashboard_authenticated', 'true');
           sessionStorage.setItem('is_admin', isAdminEmail ? 'true' : 'false');
+          persistUserToCache(email, data.user.plan_tier || 'PRO');
           checkAuthentication();
           addLog(`Bienvenido, ${data.user.email} [Plan ${data.user.plan_tier}]`);
           return;
@@ -830,6 +831,7 @@ function setupAuthEvents() {
       } catch (err) {
         sessionStorage.setItem('dashboard_authenticated', 'true');
         sessionStorage.setItem('is_admin', isAdminEmail ? 'true' : 'false');
+        persistUserToCache(email, 'PRO');
         checkAuthentication();
         addLog(`Bienvenido, ${email} [Modo Usuario Registrado]`);
       }
@@ -858,6 +860,7 @@ function setupAuthEvents() {
           localStorage.setItem('saas_token', data.token);
           sessionStorage.setItem('dashboard_authenticated', 'true');
           sessionStorage.setItem('is_admin', isAdminEmail ? 'true' : 'false');
+          persistUserToCache(email, data.user.plan_tier || 'PRO');
           checkAuthentication();
           addLog(`¡Cuenta creada con éxito! Bienvenido, ${data.user.email}`);
           return;
@@ -869,8 +872,9 @@ function setupAuthEvents() {
         sessionStorage.setItem('dashboard_authenticated', 'true');
         sessionStorage.setItem('is_admin', 'false');
         localStorage.setItem('saas_demo_user', email);
+        persistUserToCache(email, 'PRO');
         checkAuthentication();
-        addLog(`¡Cuenta registrada con éxito! Bienvenido, ${email} [Plan Starter]`);
+        addLog(`¡Cuenta registrada con éxito! Bienvenido, ${email} [Plan Pro Trader]`);
       }
     });
   }
@@ -1077,9 +1081,32 @@ function setupAuthEvents() {
   // In-Memory SaaS User Cache for Real-Time State Persistence
   let saasUsersCache = [
     { id: 1, email: 'admin@polymarketm5.com', plan_tier: 'WHALE', is_active: true },
-    { id: 2, email: 'trader_pro@gmail.com', plan_tier: 'PRO', is_active: true },
-    { id: 3, email: 'user_demo@hotmail.com', plan_tier: 'STARTER', is_active: true }
+    { id: 2, email: 'masfinanzasy@gmail.com', plan_tier: 'PRO', is_active: true },
+    { id: 3, email: 'trader_pro@gmail.com', plan_tier: 'PRO', is_active: true },
+    { id: 4, email: 'user_demo@hotmail.com', plan_tier: 'STARTER', is_active: true }
   ];
+
+  const savedSaasUsers = localStorage.getItem('saas_registered_users');
+  if (savedSaasUsers) {
+    try {
+      const parsedUsers = JSON.parse(savedSaasUsers);
+      if (Array.isArray(parsedUsers) && parsedUsers.length > 0) {
+        parsedUsers.forEach(u => {
+          if (!saasUsersCache.some(existing => existing.email.toLowerCase() === u.email.toLowerCase())) {
+            saasUsersCache.push(u);
+          }
+        });
+      }
+    } catch (e) {}
+  }
+
+  function persistUserToCache(email, planTier = 'PRO') {
+    if (!email || email.toLowerCase() === 'admin@polymarketm5.com') return;
+    if (!saasUsersCache.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+      saasUsersCache.push({ id: Date.now(), email: email, plan_tier: planTier, is_active: true });
+      localStorage.setItem('saas_registered_users', JSON.stringify(saasUsersCache));
+    }
+  }
 
   function renderAdminUsersTable() {
     if (!adminUsersTableBody) return;
