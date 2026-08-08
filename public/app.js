@@ -402,22 +402,35 @@ async function runPreTradeSecurityCheck(outcome, entryPrice, size) {
 
   if (isRealMode) {
     if (!linkedAddr || !linkedAddr.startsWith('0x') || linkedAddr.length < 40) {
-      errors.push('🔑 Billetera Polygon Web3 no conectada.');
+      errors.push('🔑 Billetera Polygon Web3 no conectada. Por favor vincula tu billetera Polygon.');
     } else {
       checks.push(`✓ Billetera Conectada: ${linkedAddr.substring(0, 6)}...${linkedAddr.substring(linkedAddr.length - 4)}`);
+      
+      // Consultar siempre el saldo real fresco antes de evaluar la orden
+      try {
+        await fetchLiveWalletBalance(linkedAddr);
+      } catch (fErr) {
+        console.warn("Error al actualizar saldo fresco antes de operar", fErr);
+      }
     }
 
-    const usdc = state.realBalances ? state.realBalances.usdc : 0.0;
-    const matic = state.realBalances ? state.realBalances.matic : 0.0;
+    const usdc = state.realBalances ? (state.realBalances.usdc || 0.0) : 0.0;
+    const matic = state.realBalances ? (state.realBalances.matic || 0.0) : 0.0;
 
-    if (usdc < size) {
-      errors.push(`💰 Saldo USDC insuficiente ($${usdc.toFixed(2)} USD < $${size.toFixed(2)} USD requeridos).`);
+    if (usdc <= 0) {
+      errors.push(`💰 Sin saldo disponible en USDC ($0.00 USDC). Se requiere saldo positivo en Polygon Mainnet.`);
+    } else if (usdc < size) {
+      // Auto-ajustar tamaño de posición al saldo disponible
+      state.settings.positionSizeUsd = parseFloat(usdc.toFixed(2));
+      const sizeInput = document.getElementById('input-pos-size');
+      if (sizeInput) sizeInput.value = usdc.toFixed(2);
+      checks.push(`⚠️ Tamaño de posición ajustado automáticamente a tu saldo disponible: $${usdc.toFixed(2)} USDC`);
     } else {
       checks.push(`✓ Saldo USDC Suficiente: $${usdc.toFixed(2)} USDC`);
     }
 
-    if (matic < 0.005) {
-      errors.push(`⛽ Saldo MATIC insuficiente para comisiones de red (${matic.toFixed(4)} MATIC < 0.0050 MATIC requeridos).`);
+    if (matic < 0.0001) {
+      errors.push(`⛽ Saldo MATIC/POL insuficiente para comisiones de red (${matic.toFixed(4)} MATIC). Se requieren al menos 0.0001 MATIC.`);
     } else {
       checks.push(`✓ Gas MATIC Suficiente: ${matic.toFixed(4)} MATIC`);
     }
@@ -428,8 +441,9 @@ async function runPreTradeSecurityCheck(outcome, entryPrice, size) {
     }
   }
 
-  if (size <= 0 || size > (state.settings.maxDailyLossUsd || 500.0)) {
-    errors.push(`⚠️ Tamaño de posición ($${size.toFixed(2)}) invalido o supera el límite de riesgo.`);
+  const effectiveSize = state.settings.positionSizeUsd || size;
+  if (effectiveSize <= 0 || effectiveSize > (state.settings.maxDailyLossUsd || 500.0)) {
+    errors.push(`⚠️ Tamaño de posición ($${effectiveSize.toFixed(2)}) inválido o supera el límite diario de riesgo ($${(state.settings.maxDailyLossUsd || 500.0).toFixed(2)}).`);
   } else {
     checks.push('✓ Límite de Riesgo Válido');
   }
@@ -439,7 +453,7 @@ async function runPreTradeSecurityCheck(outcome, entryPrice, size) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        position_size_usd: size,
+        position_size_usd: effectiveSize,
         polygon_address: linkedAddr,
         execution_mode: isRealMode ? 'REAL_MAINNET' : 'PAPER_TRADING',
         min_ev_pct: state.settings.minEvPct || 5.0
@@ -447,7 +461,9 @@ async function runPreTradeSecurityCheck(outcome, entryPrice, size) {
     });
     const backendRes = await res.json();
     if (!backendRes.passed && backendRes.errors) {
-      backendRes.errors.forEach(e => errors.push(`[Backend] ${e}`));
+      backendRes.errors.forEach(e => {
+        if (!errors.includes(e)) errors.push(`[Backend] ${e}`);
+      });
     }
   } catch (e) {
     // Local fallback check
