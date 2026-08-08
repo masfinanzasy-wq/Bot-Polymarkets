@@ -730,12 +730,12 @@ function updateWalletHeaderBadge(address) {
   const inputAddr = document.getElementById('input-wallet-address');
   const walletErrorMsg = document.getElementById('wallet-error-msg');
   const disconnectBtn = document.getElementById('btn-disconnect-wallet');
-  const balanceElem = document.getElementById('portfolio-balance');
 
   if (address && address.startsWith('0x')) {
     const shortAddr = `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+    const usdc = state.realBalances ? (state.realBalances.usdc || 0.0) : 0.0;
     if (btnWallet) {
-      btnWallet.textContent = `🟢 WALLET: ${shortAddr}`;
+      btnWallet.textContent = `🟢 WALLET: ${shortAddr} ($${usdc.toFixed(2)} USDC)`;
       btnWallet.style.borderColor = 'var(--accent-emerald)';
       btnWallet.style.color = 'var(--accent-emerald)';
       btnWallet.style.background = 'rgba(0, 230, 118, 0.1)';
@@ -748,7 +748,7 @@ function updateWalletHeaderBadge(address) {
     }
     if (walletErrorMsg && (!walletErrorMsg.textContent || walletErrorMsg.textContent.includes('✓'))) {
       walletErrorMsg.style.color = 'var(--accent-emerald)';
-      walletErrorMsg.textContent = `✓ Billetera actualmente vinculada: ${shortAddr}`;
+      walletErrorMsg.textContent = `✓ Billetera vinculada: ${shortAddr} ($${usdc.toFixed(2)} USDC)`;
     }
   } else {
     if (btnWallet) {
@@ -795,7 +795,7 @@ async function queryPolygonBalanceDirect(address) {
       const maticVal = parseInt(maticHex, 16) / 1e18;
       const usdcNatVal = parseInt(usdcNatHex, 16) / 1e6;
       const usdcBrgVal = parseInt(usdcBrgHex, 16) / 1e6;
-      const totalUsdc = usdcNatVal + usdcBrgVal;
+      const totalUsdc = (isNaN(usdcNatVal) ? 0 : usdcNatVal) + (isNaN(usdcBrgVal) ? 0 : usdcBrgVal);
 
       if (!isNaN(totalUsdc) && !isNaN(maticVal)) {
         return { usdc_balance: totalUsdc, matic_balance: maticVal, success: true };
@@ -819,8 +819,6 @@ async function fetchLiveWalletBalance(address) {
   if (realWalletInput && (!realWalletInput.value || realWalletInput.value === '0x')) {
     realWalletInput.value = address;
   }
-
-  updateWalletHeaderBadge(address);
 
   let usdc = 0.0;
   let matic = 0.0;
@@ -883,22 +881,43 @@ async function fetchLiveWalletBalance(address) {
   state.realBalances = { usdc, matic };
 
   if (modalUsdcElem) modalUsdcElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
-  if (modalMaticElem) modalMaticElem.textContent = `${matic.toFixed(3)} MATIC`;
+  if (modalMaticElem) modalMaticElem.textContent = `${matic.toFixed(4)} MATIC`;
 
-  const isRealMode = localStorage.getItem('execution_mode') === 'REAL_MAINNET';
+  // Actualizar la insignia del botón en la barra superior
+  updateWalletHeaderBadge(address);
 
-  if (balanceElem && isRealMode) {
-    const titleCard = balanceElem.closest('.kpi-card')?.querySelector('.title');
-    if (titleCard) titleCard.textContent = 'PORTFOLIO BILLETERA REAL (POLYGON)';
+  // Mostrar el saldo real en la Tarjeta KPI 3 del Dashboard siempre que haya una billetera vinculada
+  if (balanceElem) {
+    const cardObj = balanceElem.closest('.kpi-card');
+    const titleCard = cardObj?.querySelector('.title');
+    const badgeCard = cardObj?.querySelector('.badge');
+
+    if (titleCard) titleCard.textContent = 'BILLETERA POLYGON REAL';
+    if (badgeCard) {
+      badgeCard.textContent = 'POLYGON';
+      badgeCard.className = 'badge live-badge';
+    }
 
     balanceElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
     if (pnlElem) {
-      pnlElem.textContent = `Gas: ${matic.toFixed(3)} MATIC (Real)`;
-      pnlElem.className = 'price-change positive';
+      const posSize = state.settings.positionSizeUsd || 50.0;
+      if (usdc <= 0) {
+        pnlElem.textContent = `Gas: ${matic.toFixed(4)} MATIC | ⚠️ Sin Saldo USDC`;
+        pnlElem.className = 'price-change negative';
+        pnlElem.style.color = '#ff0055';
+      } else if (usdc < posSize) {
+        pnlElem.textContent = `Gas: ${matic.toFixed(4)} MATIC | ⚠️ Insuficiente para $${posSize.toFixed(0)} USD`;
+        pnlElem.className = 'price-change';
+        pnlElem.style.color = '#ffb703';
+      } else {
+        pnlElem.textContent = `Gas: ${matic.toFixed(4)} MATIC (Listo para operar)`;
+        pnlElem.className = 'price-change positive';
+        pnlElem.style.color = '';
+      }
     }
   }
 
-  addLog(`💰 Saldo real Polygon cargado: $${usdc.toFixed(2)} USDC | ${matic.toFixed(3)} MATIC`);
+  addLog(`💰 Saldo real Polygon en pantalla: $${usdc.toFixed(2)} USDC | ${matic.toFixed(4)} MATIC`);
 }
 
 function checkAuthentication(targetView) {
