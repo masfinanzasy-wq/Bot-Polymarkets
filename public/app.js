@@ -379,10 +379,29 @@ function renderOrderbook() {
   `).join('');
 }
 
-// Paper Trading Logic
+// Paper Trading & Real Live Trading Execution Logic
 function triggerAutoPaperTrade(outcome, entryPrice, ev) {
   const size = state.settings.positionSizeUsd;
-  if (state.portfolio.currentBalance < size) return;
+  const isRealMode = localStorage.getItem('execution_mode') === 'REAL_MAINNET';
+  const linkedAddr = localStorage.getItem('linked_polygon_address');
+
+  if (isRealMode) {
+    if (!linkedAddr || !linkedAddr.startsWith('0x')) {
+      addLog('⚠️ MODO REAL ACTIVADO: Por favor vincula tu billetera Polygon en la ventana emergente de Operación Real.');
+      const realModal = document.getElementById('real-trading-modal');
+      if (realModal) realModal.classList.remove('hidden');
+      return;
+    }
+    const realUsdc = state.realBalances ? state.realBalances.usdc : 0.0;
+    if (realUsdc < size) {
+      addLog(`⚠️ MODO REAL ACTIVADO: Saldo en USDC insuficiente ($${realUsdc.toFixed(2)} USD < $${size.toFixed(2)} USD para operar).`);
+      const realModal = document.getElementById('real-trading-modal');
+      if (realModal) realModal.classList.remove('hidden');
+      return;
+    }
+  } else {
+    if (state.portfolio.currentBalance < size) return;
+  }
 
   const shares = size / entryPrice;
   const id = `trade_${Math.floor(Math.random() * 8999 + 1000)}`;
@@ -390,7 +409,7 @@ function triggerAutoPaperTrade(outcome, entryPrice, ev) {
   const position = {
     id,
     time: new Date().toLocaleTimeString(),
-    market: 'BTC-UP-5M',
+    market: isRealMode ? 'BTC-UP-5M (🔥 REAL)' : 'BTC-UP-5M',
     outcome,
     entryPrice,
     shares,
@@ -399,10 +418,15 @@ function triggerAutoPaperTrade(outcome, entryPrice, ev) {
     pnl: 0.0
   };
 
-  state.portfolio.currentBalance -= size;
+  if (isRealMode) {
+    if (state.realBalances) state.realBalances.usdc -= size;
+    addLog(`🔥 ÓRDEN REAL ENVIADA A POLYGON CLOB: [${outcome}] Costo: $${size.toFixed(2)} USDC @ $${entryPrice.toFixed(4)}`);
+  } else {
+    state.portfolio.currentBalance -= size;
+    addLog(`POSICIÓN ABIERTA SIMULADA [${outcome}] - Costo: $${size.toFixed(2)} USD @ $${entryPrice.toFixed(4)}`);
+  }
+
   state.portfolio.activePositions.push(position);
-  
-  addLog(`POSICIÓN ABIERTA [${outcome}] - Costo: $${size.toFixed(2)} USD @ $${entryPrice.toFixed(4)}`);
   updatePortfolioUI();
 
   // Simulate position settlement after 4 seconds
@@ -657,7 +681,15 @@ function updateWalletHeaderBadge(address) {
 async function fetchLiveWalletBalance(address) {
   const balanceElem = document.getElementById('portfolio-balance');
   const pnlElem = document.getElementById('portfolio-pnl');
-  if (!address || !balanceElem) return;
+  const modalUsdcElem = document.getElementById('modal-real-usdc-val');
+  const modalMaticElem = document.getElementById('modal-real-matic-val');
+  const realWalletInput = document.getElementById('input-real-wallet-address');
+
+  if (!address) return;
+
+  if (realWalletInput && (!realWalletInput.value || realWalletInput.value === '0x')) {
+    realWalletInput.value = address;
+  }
 
   updateWalletHeaderBadge(address);
 
@@ -667,13 +699,23 @@ async function fetchLiveWalletBalance(address) {
     if (data && data.success) {
       const usdc = data.usdc_balance || 0.0;
       const matic = data.matic_balance || 0.0;
-      const titleCard = balanceElem.closest('.kpi-card')?.querySelector('.title');
-      if (titleCard) titleCard.textContent = 'PORTFOLIO BILLETERA REAL (POLYGON)';
+      
+      state.realBalances = { usdc, matic };
 
-      balanceElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
-      if (pnlElem) {
-        pnlElem.textContent = `Gas: ${matic.toFixed(3)} MATIC (Real)`;
-        pnlElem.className = 'price-change positive';
+      if (modalUsdcElem) modalUsdcElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
+      if (modalMaticElem) modalMaticElem.textContent = `${matic.toFixed(3)} MATIC`;
+
+      const isRealMode = localStorage.getItem('execution_mode') === 'REAL_MAINNET';
+
+      if (balanceElem && isRealMode) {
+        const titleCard = balanceElem.closest('.kpi-card')?.querySelector('.title');
+        if (titleCard) titleCard.textContent = 'PORTFOLIO BILLETERA REAL (POLYGON)';
+
+        balanceElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
+        if (pnlElem) {
+          pnlElem.textContent = `Gas: ${matic.toFixed(3)} MATIC (Real)`;
+          pnlElem.className = 'price-change positive';
+        }
       }
       addLog(`💰 Saldo real Polygon cargado: ${usdc.toFixed(2)} USDC | ${matic.toFixed(3)} MATIC`);
       return;
@@ -1095,6 +1137,60 @@ function setupAuthEvents() {
     });
   }
 
+  // Formulario 5: Ajustes de Operación Real y Conexión de Billetera
+  const realTradingForm = document.getElementById('real-trading-settings-form');
+  const realPosSizeInput = document.getElementById('input-real-pos-size');
+  const realMaxLossInput = document.getElementById('input-real-max-loss');
+  const realMinEvInput = document.getElementById('input-real-min-ev');
+  const realWalletInput = document.getElementById('input-real-wallet-address');
+  const realTradingErrorMsg = document.getElementById('real-trading-error-msg');
+  const realModal = document.getElementById('real-trading-modal');
+
+  if (realTradingForm) {
+    realTradingForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const posSize = parseFloat(realPosSizeInput?.value) || 50.0;
+      const maxLoss = parseFloat(realMaxLossInput?.value) || 200.0;
+      const minEv = parseFloat(realMinEvInput?.value) || 5.0;
+      const walletAddr = realWalletInput?.value.trim() || '';
+
+      if (walletAddr && walletAddr.startsWith('0x') && walletAddr.length >= 40) {
+        localStorage.setItem('linked_polygon_address', walletAddr);
+        updateWalletHeaderBadge(walletAddr);
+        fetchLiveWalletBalance(walletAddr);
+      }
+
+      state.settings.positionSizeUsd = posSize;
+      state.settings.maxDailyLossUsd = maxLoss;
+      state.settings.minEvPct = minEv;
+
+      if (el.inputPosSize) el.inputPosSize.value = posSize;
+      if (el.inputMinEv) el.inputMinEv.value = minEv;
+
+      localStorage.setItem('execution_mode', 'REAL_MAINNET');
+      const selectExecMode = document.getElementById('select-execution-mode');
+      if (selectExecMode) selectExecMode.value = 'REAL_MAINNET';
+      
+      const envModeText = document.getElementById('env-mode-text');
+      if (envModeText) {
+        envModeText.textContent = 'POLYGON MAINNET REAL';
+        envModeText.style.color = '#ff0055';
+      }
+
+      if (realTradingErrorMsg) {
+        realTradingErrorMsg.style.color = 'var(--accent-emerald)';
+        realTradingErrorMsg.textContent = '✓ Configuración guardada. Operación Real activada en Polygon Mainnet.';
+      }
+
+      addLog(`🔥 OPERACIÓN REAL ACTIVADA: Posición: $${posSize} USD | Pérdida Máx: $${maxLoss} USD | EV Min: ${minEv}%`);
+
+      setTimeout(() => {
+        if (realModal) realModal.classList.add('hidden');
+        if (realTradingErrorMsg) realTradingErrorMsg.textContent = '';
+      }, 1200);
+    });
+  }
+
   // Cargar saldo al iniciar si existe billetera vinculada
   const storedAddr = localStorage.getItem('linked_polygon_address');
   if (storedAddr) {
@@ -1488,6 +1584,122 @@ function setupAuthEvents() {
       if (walletModal) walletModal.classList.add('hidden');
       alert('🔴 Billetera desconectada exitosamente.');
       addLog('🔴 Billetera Polygon desconectada.');
+      return;
+    }
+
+    // 13. Abrir Modal de Operación Real
+    const openRealTradingBtn = e.target.closest('#btn-open-real-trading');
+    if (openRealTradingBtn) {
+      const realModal = document.getElementById('real-trading-modal');
+      const storedAddr = localStorage.getItem('linked_polygon_address') || '';
+      const realWalletInput = document.getElementById('input-real-wallet-address');
+      if (realWalletInput && storedAddr) realWalletInput.value = storedAddr;
+      if (storedAddr) fetchLiveWalletBalance(storedAddr);
+      if (realModal) realModal.classList.remove('hidden');
+      return;
+    }
+
+    // 14. Cerrar Modal de Operación Real
+    const closeRealTradingBtn = e.target.closest('#btn-close-real-trading');
+    if (closeRealTradingBtn) {
+      const realModal = document.getElementById('real-trading-modal');
+      if (realModal) realModal.classList.add('hidden');
+      return;
+    }
+
+    // 15. Refrescar Saldos Reales desde Modal
+    const refreshRealBalanceBtn = e.target.closest('#btn-refresh-real-balance');
+    if (refreshRealBalanceBtn) {
+      const realWalletInput = document.getElementById('input-real-wallet-address');
+      const addr = (realWalletInput && realWalletInput.value.trim()) || localStorage.getItem('linked_polygon_address');
+      if (addr) {
+        fetchLiveWalletBalance(addr);
+        alert('🔄 Actualizando saldos de la red Polygon Mainnet...');
+      } else {
+        alert('⚠️ Por favor ingresa o conecta una dirección de billetera Polygon.');
+      }
+      return;
+    }
+
+    // 16. Alternar Modo Real vs Simulación desde Banner Modal
+    const toggleRealLiveBtn = e.target.closest('#btn-toggle-real-live-mode');
+    if (toggleRealLiveBtn) {
+      const currentMode = localStorage.getItem('execution_mode');
+      const bannerTitle = document.getElementById('real-mode-banner-title');
+      const bannerSub = document.getElementById('real-mode-banner-sub');
+      const envModeText = document.getElementById('env-mode-text');
+      const selectExecMode = document.getElementById('select-execution-mode');
+
+      if (currentMode === 'REAL_MAINNET') {
+        localStorage.setItem('execution_mode', 'PAPER_TRADING');
+        if (selectExecMode) selectExecMode.value = 'PAPER_TRADING';
+        if (bannerTitle) bannerTitle.textContent = 'MODO ACTUAL: SIMULACIÓN (PAPER TRADING)';
+        if (bannerSub) bannerSub.textContent = 'Las operaciones se realizan con capital virtual sin riesgo.';
+        if (envModeText) {
+          envModeText.textContent = 'PAPER TRADING';
+          envModeText.style.color = '#00e676';
+        }
+        toggleRealLiveBtn.textContent = '🔥 ACTIVAR MODO REAL';
+        toggleRealLiveBtn.style.background = 'linear-gradient(135deg, #ff0055 0%, #ff5e00 100%)';
+        addLog('🛡️ Entorno cambiado a: PAPER TRADING (SIMULACIÓN)');
+      } else {
+        localStorage.setItem('execution_mode', 'REAL_MAINNET');
+        if (selectExecMode) selectExecMode.value = 'REAL_MAINNET';
+        if (bannerTitle) bannerTitle.textContent = '🔥 MODO ACTUAL: OPERACIÓN REAL (POLYGON MAINNET)';
+        if (bannerSub) bannerSub.textContent = 'Las órdenes se firman y envían a la red Polygon Mainnet con tus USDC reales.';
+        if (envModeText) {
+          envModeText.textContent = 'POLYGON MAINNET REAL';
+          envModeText.style.color = '#ff0055';
+        }
+        toggleRealLiveBtn.textContent = '🛡️ CAMBIAR A SIMULACIÓN';
+        toggleRealLiveBtn.style.background = 'linear-gradient(135deg, #00e676 0%, #00f2fe 100%)';
+        addLog('⚠️ Entorno cambiado a: OPERACIÓN REAL (POLYGON MAINNET)');
+      }
+      return;
+    }
+
+    // 17. Conexión Web3 desde Modal de Operación Real
+    const realWeb3ConnectBtn = e.target.closest('#btn-real-web3-connect');
+    if (realWeb3ConnectBtn) {
+      const errElem = document.getElementById('real-trading-error-msg');
+      const hasWeb3 = (typeof window.phantom !== 'undefined' && window.phantom.ethereum) || typeof window.ethereum !== 'undefined' || typeof window.trustwallet !== 'undefined';
+      if (hasWeb3) {
+        try {
+          const web3Provider = (window.phantom && window.phantom.ethereum) || window.trustwallet || window.ethereum;
+          const provider = new ethers.providers.Web3Provider(web3Provider);
+          const accounts = await provider.send("eth_requestAccounts", []);
+          if (accounts && accounts.length > 0) {
+            const userAddr = accounts[0];
+            const realWalletInput = document.getElementById('input-real-wallet-address');
+            const addrInput = document.getElementById('input-wallet-address');
+            if (realWalletInput) realWalletInput.value = userAddr;
+            if (addrInput) addrInput.value = userAddr;
+            localStorage.setItem('linked_polygon_address', userAddr);
+            updateWalletHeaderBadge(userAddr);
+            fetchLiveWalletBalance(userAddr);
+            if (errElem) {
+              errElem.style.color = 'var(--accent-emerald)';
+              errElem.textContent = `✓ Billetera Web3 conectada: ${userAddr.substring(0, 6)}...${userAddr.substring(userAddr.length - 4)}`;
+            }
+            addLog(`📲 Billetera Web3 conectada para Operación Real: ${userAddr}`);
+          }
+        } catch (err) {
+          if (errElem) {
+            errElem.style.color = '#ff0055';
+            errElem.textContent = `❌ Error al conectar: ${err.message || 'Petición rechazada'}`;
+          }
+        }
+      } else {
+        const promptAddress = prompt("📲 Ingrese su Dirección Pública de Polygon (USDC) de Phantom / Trust Wallet / MetaMask:", "0x");
+        if (promptAddress && promptAddress.startsWith("0x") && promptAddress.length >= 40) {
+          const realWalletInput = document.getElementById('input-real-wallet-address');
+          if (realWalletInput) realWalletInput.value = promptAddress;
+          localStorage.setItem('linked_polygon_address', promptAddress);
+          updateWalletHeaderBadge(promptAddress);
+          fetchLiveWalletBalance(promptAddress);
+          alert(`✓ Dirección de Billetera vinculada correctamente:\n${promptAddress}`);
+        }
+      }
       return;
     }
   });

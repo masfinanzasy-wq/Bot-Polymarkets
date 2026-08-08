@@ -53,6 +53,7 @@
           <span class="icon">🛡️</span>
           <span>MODO: <strong id="env-mode-text">PAPER TRADING</strong></span>
         </div>
+        <button class="btn btn-hero-primary btn-sm" id="btn-open-real-trading" style="margin-left: 8px; background: linear-gradient(135deg, #ff0055 0%, #ff5e00 100%); font-weight: 800; border: none; box-shadow: 0 0 12px rgba(255, 0, 85, 0.4);">🔥 OPERAR EN REAL</button>
         <button class="btn btn-tab btn-sm" id="btn-nav-landing" style="margin-left: 8px;">🏠 INICIO</button>
         <button class="btn btn-tab active btn-sm" id="btn-open-plans" style="margin-left: 8px;">💎 PLANES</button>
         <button class="btn btn-secondary btn-sm" id="btn-open-wallet" style="margin-left: 8px;">🔑 BILLETERA</button>
@@ -334,6 +335,98 @@
             <button type="button" class="btn btn-secondary btn-full" id="btn-disconnect-wallet" style="display: none; background: rgba(255, 0, 85, 0.15); border-color: rgba(255, 0, 85, 0.4); color: #ff0055;">🔴 DESCONECTAR BILLETERA</button>
           </form>
         </div>
+      </div>
+    </div>
+
+    <!-- Modal de Operación Real & Conexión de Cuenta / Billetera Polygon Mainnet -->
+    <div class="auth-overlay hidden" id="real-trading-modal" style="z-index: 10006;">
+      <div class="glass-card pricing-card-container" style="max-width: 640px; padding: 28px; border: 1px solid rgba(255, 0, 85, 0.4); box-shadow: 0 0 30px rgba(255, 0, 85, 0.25);">
+        <div class="pricing-header" style="margin-bottom: 20px;">
+          <div class="auth-icon" style="background: rgba(255, 0, 85, 0.15); border-color: rgba(255, 0, 85, 0.4); color: #ff0055;">🔥</div>
+          <h2 style="color: #ff0055; font-size: 20px; font-weight: 800;">CONFIGURACIÓN DE OPERACIÓN REAL & BILLETERA</h2>
+          <p class="auth-subtitle">Conecta tu cuenta real en Polygon Mainnet, verifica tus saldos de USDC/MATIC y ajusta el límite de operación.</p>
+          <button class="modal-close-btn" id="btn-close-real-trading">✕</button>
+        </div>
+
+        <!-- Banner de Estado de Entorno -->
+        <div id="real-mode-status-banner" style="background: rgba(255, 0, 85, 0.1); border: 1px solid rgba(255, 0, 85, 0.3); border-radius: 12px; padding: 14px; margin-bottom: 20px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 20px;">⚠️</span>
+            <div>
+              <div style="font-weight: 800; font-size: 13px; color: #ff0055;" id="real-mode-banner-title">MODO ACTUAL: SIMULACIÓN (PAPER TRADING)</div>
+              <div style="font-size: 11px; color: var(--text-muted);" id="real-mode-banner-sub">Para ejecutar transacciones reales en la red Polygon Mainnet debes activar la cuenta real.</div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-action btn-sm" id="btn-toggle-real-live-mode" style="background: linear-gradient(135deg, #ff0055 0%, #ff5e00 100%); font-weight: 800; padding: 8px 14px;">
+            🔥 ACTIVAR MODO REAL
+          </button>
+        </div>
+
+        <!-- Grid de Saldos Reales de la Billetera -->
+        <div class="glass-card" style="margin-bottom: 20px; padding: 16px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(0, 242, 254, 0.2);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <span style="font-size: 12px; font-weight: 800; color: var(--accent-cyan); display: flex; align-items: center; gap: 6px;">
+              <span>💎 SALDOS REALES EN POLYGON MAINNET</span>
+            </span>
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-refresh-real-balance" style="padding: 4px 10px; font-size: 11px;">
+              🔄 ACTUALIZAR SALDOS
+            </button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="background: rgba(0, 230, 118, 0.08); border: 1px solid rgba(0, 230, 118, 0.25); border-radius: 10px; padding: 12px;">
+              <div style="font-size: 10px; color: var(--text-muted); font-weight: 700;">SALDO DISPONIBLE USDC</div>
+              <div style="font-size: 20px; font-weight: 800; color: var(--accent-emerald);" id="modal-real-usdc-val">$0.00 USDC</div>
+              <div style="font-size: 10px; color: var(--text-dim); margin-top: 2px;">Fondos para compras en Polymarket</div>
+            </div>
+            <div style="background: rgba(157, 78, 221, 0.08); border: 1px solid rgba(157, 78, 221, 0.25); border-radius: 10px; padding: 12px;">
+              <div style="font-size: 10px; color: var(--text-muted); font-weight: 700;">GAS DE RED (POL / MATIC)</div>
+              <div style="font-size: 20px; font-weight: 800; color: var(--accent-purple);" id="modal-real-matic-val">0.000 MATIC</div>
+              <div style="font-size: 10px; color: var(--text-dim); margin-top: 2px;">Requerido para comisiones de red</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conexión Web3 & Billetera -->
+        <div style="margin-bottom: 20px;">
+          <label style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 6px; display: block;">1. VINCULAR BILLETERA REAL (PHANTOM / TRUST / METAMASK):</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="input-real-wallet-address" placeholder="Dirección Polygon (0x...)" class="input-field-auth" style="flex: 1; font-size: 12px;" />
+            <button type="button" class="btn btn-hero-primary btn-sm" id="btn-real-web3-connect" style="white-space: nowrap; font-weight: 800; padding: 8px 14px;">⚡ CONECTAR WEB3</button>
+          </div>
+        </div>
+
+        <!-- Ajustes de Riesgo y Operación Real -->
+        <form id="real-trading-settings-form" onsubmit="return false;">
+          <div style="font-size: 11px; font-weight: 800; color: var(--text-muted); margin-bottom: 10px;">2. PARÁMETROS DE OPERACIÓN REAL:</div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px;">
+            <div class="form-group-vertical">
+              <label for="input-real-pos-size" style="font-size: 10px; font-weight: 700; color: var(--text-muted);">MONTO POR TRADING ($ USD):</label>
+              <input type="number" id="input-real-pos-size" value="50.0" min="5" max="5000" step="5" class="input-field-auth" style="font-size: 13px; font-weight: 700;" />
+            </div>
+            <div class="form-group-vertical">
+              <label for="input-real-max-loss" style="font-size: 10px; font-weight: 700; color: var(--text-muted);">MÁX. PÉRDIDA DIARIA ($ USD):</label>
+              <input type="number" id="input-real-max-loss" value="200.0" min="10" max="10000" step="10" class="input-field-auth" style="font-size: 13px; font-weight: 700;" />
+            </div>
+            <div class="form-group-vertical">
+              <label for="input-real-min-ev" style="font-size: 10px; font-weight: 700; color: var(--text-muted);">EV MÍNIMO EXIGIDO (%):</label>
+              <input type="number" id="input-real-min-ev" value="5.0" min="1" max="50" step="0.5" class="input-field-auth" style="font-size: 13px; font-weight: 700;" />
+            </div>
+          </div>
+
+          <div style="background: rgba(255, 0, 85, 0.06); border: 1px solid rgba(255, 0, 85, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 16px; font-size: 11px; color: #ff0055; line-height: 1.4;">
+            🛡️ <strong>PROTECCIÓN NON-CUSTODIAL:</strong> Las órdenes se firman localmente en tu navegador. Tus fondos nunca salen de tu billetera personal en Polygon.
+          </div>
+
+          <div class="auth-error-msg" id="real-trading-error-msg" style="margin-bottom: 12px; font-size: 12px; font-weight: 700;"></div>
+
+          <div style="display: flex; gap: 10px;">
+            <button type="submit" class="btn btn-action btn-full" id="btn-save-real-trading-settings" style="background: linear-gradient(135deg, #ff0055 0%, #9d4edd 100%); padding: 12px; font-weight: 800;">
+              💾 GUARDAR & ACTIVAR OPERACIÓN REAL
+            </button>
+          </div>
+        </form>
       </div>
     </div>
 
