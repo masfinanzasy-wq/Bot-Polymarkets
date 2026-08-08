@@ -286,6 +286,14 @@
           <button class="modal-close-btn" id="btn-close-wallet">✕</button>
         </div>
 
+        <!-- Guía amigable de conexión Trust Wallet / Web3 -->
+        <div style="background: rgba(157, 78, 221, 0.1); border: 1px solid rgba(157, 78, 221, 0.3); border-radius: 10px; padding: 12px; margin-bottom: 16px; font-size: 11px; color: #d8b4fe; line-height: 1.5;">
+          🛡️ <strong>CÓMO CONECTAR TRUST WALLET:</strong><br/>
+          1. <strong>En PC/Navegador:</strong> Haz clic en <em>"⚡ AUTO-DETECTAR Y CONECTAR WALLET WEB3"</em> (con la extensión Trust Wallet instalada).<br/>
+          2. <strong>En Celular:</strong> Abre la App <strong>Trust Wallet</strong> → Ve a <strong>Navegador / DApps</strong> → Pega el enlace de la plataforma.<br/>
+          3. <strong>Manual:</strong> Copia tu dirección de Polygon (comienza por <code>0x...</code>) desde Trust Wallet y pégala a continuación.
+        </div>
+
         <!-- Botón de Conexión Automática Web3 Destacado -->
         <div style="margin-bottom: 16px;">
           <button type="button" class="btn btn-hero-primary btn-full" id="btn-quick-web3-connect" style="padding: 12px; font-size: 13px; font-weight: 800; background: linear-gradient(135deg, #00f2fe 0%, #9d4edd 100%);">
@@ -294,14 +302,14 @@
         </div>
 
         <div style="text-align: center; margin-bottom: 16px; font-size: 11px; color: var(--text-muted); font-weight: 700;">
-          ─── O INGRESA MANUALMENTE ───
+          ─── O INGRESA TU DIRECCIÓN DE TRUST WALLET ───
         </div>
 
         <!-- Formulario Único Directo Non-Custodial -->
         <div id="view-wallet-privatekey">
           <form id="wallet-binding-form" onsubmit="return false;">
             <div class="form-group-vertical" style="margin-bottom: 14px;">
-              <label for="input-wallet-address" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">DIRECCIÓN PÚBLICA DE POLYGON (USDC):</label>
+              <label for="input-wallet-address" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">DIRECCIÓN PÚBLICA DE POLYGON (USDC) DE TRUST WALLET:</label>
               <input type="text" id="input-wallet-address" placeholder="0x..." class="input-field-auth" required style="width: 100%; font-size: 13px;" />
             </div>
             <div style="background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 16px; font-size: 11px; color: var(--accent-cyan); line-height: 1.4;">
