@@ -1768,6 +1768,24 @@ function setupAuthEvents() {
       return;
     }
 
+    // Abrir directo en Trust Wallet DApp Browser
+    const openTrustDappBtn = e.target.closest('#btn-open-trust-dapp');
+    if (openTrustDappBtn) {
+      const targetUrl = window.location.href;
+      const trustDeepLink = `https://link.trustwallet.com/open_url?coin_id=966&url=${encodeURIComponent(targetUrl)}`;
+      window.location.href = trustDeepLink;
+      return;
+    }
+
+    // Abrir directo en MetaMask DApp Browser
+    const openMetaMaskDappBtn = e.target.closest('#btn-open-metamask-dapp');
+    if (openMetaMaskDappBtn) {
+      const cleanUrl = window.location.href.replace(/^https?:\/\//, '');
+      const mmDeepLink = `https://metamask.app.link/dapp/${cleanUrl}`;
+      window.location.href = mmDeepLink;
+      return;
+    }
+
     // 12. Desconectar Billetera
     const disconnectWalletBtn = e.target.closest('#btn-disconnect-wallet');
     if (disconnectWalletBtn) {
