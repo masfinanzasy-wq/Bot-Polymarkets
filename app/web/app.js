@@ -810,18 +810,51 @@ async function fetchLiveWalletBalance(address) {
   let matic = 0.0;
   let fetchedSuccess = false;
 
-  try {
-    const res = await fetch(`/api/v1/wallet/balance/${address}`);
-    const data = await res.json();
-    if (data && data.success && (data.usdc_balance > 0 || data.matic_balance > 0)) {
-      usdc = data.usdc_balance || 0.0;
-      matic = data.matic_balance || 0.0;
-      fetchedSuccess = true;
+  // Capa 1: Consulta directa via Provider Web3 si el usuario tiene extensión instalada
+  if (typeof window.ethereum !== 'undefined' || (typeof window.phantom !== 'undefined' && window.phantom.ethereum)) {
+    try {
+      const web3Provider = (window.phantom && window.phantom.ethereum) || window.ethereum;
+      const provider = new ethers.providers.Web3Provider(web3Provider);
+      
+      const cleanAddr = address.toLowerCase().replace('0x', '').padStart(64, '0');
+      const dataCall = '0x70a08231' + cleanAddr;
+
+      const [maticHex, usdcNatHex, usdcBrgHex] = await Promise.all([
+        provider.send("eth_getBalance", [address, "latest"]).catch(() => "0x0"),
+        provider.send("eth_call", [{ to: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", data: dataCall }, "latest"]).catch(() => "0x0"),
+        provider.send("eth_call", [{ to: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", data: dataCall }, "latest"]).catch(() => "0x0")
+      ]);
+
+      const maticVal = parseInt(maticHex || "0x0", 16) / 1e18;
+      const usdcNatVal = parseInt(usdcNatHex || "0x0", 16) / 1e6;
+      const usdcBrgVal = parseInt(usdcBrgHex || "0x0", 16) / 1e6;
+
+      if (!isNaN(maticVal) && (!isNaN(usdcNatVal) || !isNaN(usdcBrgVal))) {
+        usdc = (isNaN(usdcNatVal) ? 0 : usdcNatVal) + (isNaN(usdcBrgVal) ? 0 : usdcBrgVal);
+        matic = isNaN(maticVal) ? 0 : maticVal;
+        fetchedSuccess = true;
+      }
+    } catch (wErr) {
+      // Fallback a API del Backend
     }
-  } catch (err) {
-    console.warn("Error fetching balance via API, fallback to direct RPC", err);
   }
 
+  // Capa 2: Backend API de la plataforma
+  if (!fetchedSuccess) {
+    try {
+      const res = await fetch(`/api/v1/wallet/balance/${address}`);
+      const data = await res.json();
+      if (data && data.success) {
+        usdc = data.usdc_balance || 0.0;
+        matic = data.matic_balance || 0.0;
+        fetchedSuccess = true;
+      }
+    } catch (err) {
+      console.warn("Error fetching balance via API, fallback to direct RPC", err);
+    }
+  }
+
+  // Capa 3: Nodos RPC Públicos de Polygon
   if (!fetchedSuccess) {
     const directData = await queryPolygonBalanceDirect(address);
     if (directData && directData.success) {
@@ -848,9 +881,8 @@ async function fetchLiveWalletBalance(address) {
       pnlElem.className = 'price-change positive';
     }
   }
-  if (fetchedSuccess) {
-    addLog(`💰 Saldo real Polygon actualizado: $${usdc.toFixed(2)} USDC | ${matic.toFixed(3)} MATIC`);
-  }
+
+  addLog(`💰 Saldo real Polygon cargado: $${usdc.toFixed(2)} USDC | ${matic.toFixed(3)} MATIC`);
 }
 
 function checkAuthentication(targetView) {

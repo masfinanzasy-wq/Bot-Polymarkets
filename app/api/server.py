@@ -209,6 +209,15 @@ async def get_polygon_wallet_balance(address: str):
         p_usdc_nat = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", "data": data_call}, "latest"], "id": 2}
         p_usdc_brg = {"jsonrpc": "2.0", "method": "eth_call", "params": [{"to": "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", "data": data_call}, "latest"], "id": 3}
 
+        def extract_hex(res):
+            if isinstance(res, Exception) or getattr(res, "status_code", 0) != 200:
+                return "0x0"
+            try:
+                data = res.json()
+                return data.get("result", "0x0") or "0x0"
+            except Exception:
+                return "0x0"
+
         async with httpx.AsyncClient(timeout=4.0) as client:
             for rpc_url in rpc_urls:
                 try:
@@ -219,12 +228,12 @@ async def get_polygon_wallet_balance(address: str):
                         return_exceptions=True
                     )
 
-                    if isinstance(r1, Exception) or r1.status_code != 200:
-                        continue
+                    matic_hex = extract_hex(r1)
+                    usdc_nat_hex = extract_hex(r2)
+                    usdc_brg_hex = extract_hex(r3)
 
-                    matic_hex = r1.json().get("result", "0x0") if not isinstance(r1, Exception) else "0x0"
-                    usdc_nat_hex = r2.json().get("result", "0x0") if not isinstance(r2, Exception) else "0x0"
-                    usdc_brg_hex = r3.json().get("result", "0x0") if not isinstance(r3, Exception) else "0x0"
+                    if matic_hex == "0x0" and usdc_nat_hex == "0x0" and usdc_brg_hex == "0x0" and isinstance(r1, Exception):
+                        continue
 
                     matic_val = int(matic_hex, 16) / 1e18 if matic_hex and matic_hex != "0x" else 0.0
                     usdc_nat_val = int(usdc_nat_hex, 16) / 1e6 if usdc_nat_hex and usdc_nat_hex != "0x" else 0.0
@@ -241,7 +250,7 @@ async def get_polygon_wallet_balance(address: str):
                 except Exception:
                     continue
 
-        return {"address": address, "usdc_balance": 0.0, "matic_balance": 0.0, "success": False, "detail": "RPC Fallback completado sin respuesta válidas"}
+        return {"address": address, "usdc_balance": 0.0, "matic_balance": 0.0, "success": False, "detail": "RPC Fallback completado sin respuestas válidas"}
     except Exception as e:
         return {"address": address, "usdc_balance": 0.0, "matic_balance": 0.0, "success": False, "detail": str(e)}
 
