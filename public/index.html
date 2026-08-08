@@ -41,24 +41,7 @@
       </div>
 
       <div class="header-status" id="header-nav-controls">
-        <div class="status-pill online" id="binance-ws-status">
-          <span class="dot"></span>
-          <span>BINANCE WS: <strong id="binance-status-text">CONECTANDO...</strong></span>
-        </div>
-        <div class="status-pill online" id="polymarket-status">
-          <span class="dot"></span>
-          <span>POLYMARKET CLOB: <strong id="polymarket-status-text">ONLINE</strong></span>
-        </div>
-        <div class="status-pill env-mode" id="pill-env-mode">
-          <span class="icon">🛡️</span>
-          <span>MODO: <strong id="env-mode-text">PAPER TRADING</strong></span>
-        </div>
-        <button class="btn btn-hero-primary btn-sm" id="btn-open-real-trading" style="margin-left: 8px; background: linear-gradient(135deg, #ff0055 0%, #ff5e00 100%); font-weight: 800; border: none; box-shadow: 0 0 12px rgba(255, 0, 85, 0.4);">🔥 OPERAR EN REAL</button>
-        <button class="btn btn-tab btn-sm" id="btn-nav-landing" style="margin-left: 8px;">🏠 INICIO</button>
-        <button class="btn btn-tab active btn-sm" id="btn-open-plans" style="margin-left: 8px;">💎 PLANES</button>
-        <button class="btn btn-secondary btn-sm" id="btn-open-wallet" style="margin-left: 8px;">🔑 BILLETERA</button>
-        <button class="btn btn-action btn-sm" id="btn-open-admin" style="display: none; margin-left: 8px;">⚙️ SAAS ADMIN</button>
-        <button class="btn btn-hero-primary btn-sm" id="btn-nav-login" style="margin-left: 8px; padding: 6px 14px;">🚀 ACCEDER AL TERMINAL</button>
+        <button class="btn btn-hero-primary btn-sm" id="btn-nav-login" style="padding: 8px 20px; font-weight: 800; font-size: 13px; background: linear-gradient(135deg, #00f2fe 0%, #3b82f6 100%);">🚀 ACCEDER A LA PLATAFORMA</button>
         <button class="btn btn-secondary btn-sm" id="btn-logout" style="display: none; margin-left: 8px;">🔒 SALIR</button>
       </div>
     </header>
@@ -74,12 +57,10 @@
           en <span class="gradient-text">Mercados Binarios M5</span>
         </h1>
         <p class="hero-subtitle">
-          Sincroniza señales spot de Binance en tiempo real con el libro de órdenes CLOB de Polymarket. Algoritmos cuantitativos de Expected Value (EV), Kelly Criterion y ejecuciones automatizadas non-custodial cifradas con <strong>AES-256</strong>.
+          Sincroniza señales spot de Binance en tiempo real con el libro de órdenes CLOB de Polymarket. Algoritmos cuantitativos de Expected Value (EV), Kelly Criterion y ejecuciones automatizadas 100% Non-Custodial.
         </p>
         <div class="hero-cta-group">
-          <button type="button" class="btn-hero-primary" id="btn-hero-enter-terminal">🚀 INGRESAR AL TERMINAL EN VIVO</button>
-          <button type="button" class="btn-hero-secondary" id="btn-hero-plans">💎 VER PLANES SAAS</button>
-          <button type="button" class="btn-hero-secondary" id="btn-hero-wallet">🔑 VINCULAR BILLETERA</button>
+          <button type="button" class="btn-hero-primary" id="btn-hero-enter-terminal" style="padding: 16px 36px; font-size: 16px; font-weight: 800;">🚀 ACCEDER A LA PLATAFORMA</button>
         </div>
       </section>
 
@@ -316,19 +297,15 @@
           ─── O INGRESA MANUALMENTE ───
         </div>
 
-        <!-- Formulario Único Directo -->
+        <!-- Formulario Único Directo Non-Custodial -->
         <div id="view-wallet-privatekey">
           <form id="wallet-binding-form" onsubmit="return false;">
             <div class="form-group-vertical" style="margin-bottom: 14px;">
               <label for="input-wallet-address" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">DIRECCIÓN PÚBLICA DE POLYGON (USDC):</label>
               <input type="text" id="input-wallet-address" placeholder="0x..." class="input-field-auth" required style="width: 100%; font-size: 13px;" />
             </div>
-            <div class="form-group-vertical" style="margin-bottom: 16px;">
-              <label for="input-wallet-private-key" style="font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; display: block;">CLAVE PRIVADA O 12 PALABRAS (OPCIONAL):</label>
-              <input type="password" id="input-wallet-private-key" placeholder="0x... o 12 palabras clave (Opcional)" class="input-field-auth" style="width: 100%; font-size: 13px;" />
-            </div>
             <div style="background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.2); border-radius: 8px; padding: 10px; margin-bottom: 16px; font-size: 11px; color: var(--accent-cyan); line-height: 1.4;">
-              💡 <strong>VINCULACIÓN RÁPIDA:</strong> Al ingresar tu <strong>Dirección Pública (0x...)</strong>, tu billetera quedará conectada de inmediato al bot.
+              🛡️ <strong>100% NON-CUSTODIAL:</strong> La plataforma solo lee tu dirección pública y firma transacciones autorizadas mediante Web3. Nunca solicitamos ni almacenamos claves privadas ni frases semilla.
             </div>
             <div class="auth-error-msg" id="wallet-error-msg" style="margin-bottom: 12px;"></div>
             <button type="submit" class="btn btn-tab active btn-full" id="btn-submit-wallet" style="margin-bottom: 8px;">VINCULAR BILLETERA AHORA</button>
@@ -547,8 +524,36 @@
       </div>
     </div>
 
-    <!-- TERMINAL DASHBOARD VIEW (APP INTERNA) -->
+    <!-- TERMINAL DASHBOARD VIEW (APP INTERNA PRIVADA) -->
     <div id="terminal-dashboard-view" class="hidden">
+      <!-- Toolbar Privada de Control -->
+      <div class="glass-card" style="margin-bottom: 20px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+          <div class="status-pill online" id="binance-ws-status">
+            <span class="dot"></span>
+            <span>BINANCE WS: <strong id="binance-status-text">CONECTANDO...</strong></span>
+          </div>
+          <div class="status-pill online" id="polymarket-status">
+            <span class="dot"></span>
+            <span>POLYMARKET CLOB: <strong id="polymarket-status-text">ONLINE</strong></span>
+          </div>
+          <div class="status-pill env-mode" id="pill-env-mode">
+            <span class="icon">🛡️</span>
+            <span>MODO: <strong id="env-mode-text">PAPER TRADING</strong></span>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <button class="btn btn-hero-primary btn-sm" id="btn-open-real-trading" style="background: linear-gradient(135deg, #ff0055 0%, #ff5e00 100%); font-weight: 800; border: none; box-shadow: 0 0 12px rgba(255, 0, 85, 0.4);">🔥 OPERAR EN REAL</button>
+          <button class="btn btn-secondary btn-sm" id="btn-open-wallet">🔑 BILLETERA WEB3</button>
+          <button class="btn btn-tab active btn-sm" id="btn-open-plans">💎 PLANES</button>
+          <button class="btn btn-danger btn-sm" id="btn-panic-stop" style="background: #ff0055; font-weight: 800; border: none; box-shadow: 0 0 12px rgba(255, 0, 85, 0.5);">🛑 PARADA DE EMERGENCIA</button>
+          <button class="btn btn-action btn-sm" id="btn-open-admin" style="display: none;">⚙️ SAAS ADMIN</button>
+          <button class="btn btn-tab btn-sm" id="btn-nav-landing">🏠 INICIO</button>
+          <button class="btn btn-secondary btn-sm" id="btn-dashboard-logout" style="background: rgba(255, 0, 85, 0.15); border-color: rgba(255, 0, 85, 0.4); color: #ff0055;">🔒 SALIR</button>
+        </div>
+      </div>
+
       <!-- Top KPI Cards -->
       <section class="kpi-grid">
         <!-- Card 1: BTC Spot -->

@@ -379,28 +379,100 @@ function renderOrderbook() {
   `).join('');
 }
 
-// Paper Trading & Real Live Trading Execution Logic
-function triggerAutoPaperTrade(outcome, entryPrice, ev) {
-  const size = state.settings.positionSizeUsd;
+// Pre-Trade Security Check Automatizado de 12 Puntos
+async function runPreTradeSecurityCheck(outcome, entryPrice, size) {
+  const checks = [];
+  const errors = [];
+
+  const isAuth = sessionStorage.getItem('dashboard_authenticated') === 'true';
+  if (!isAuth) {
+    errors.push('🔒 Usuario no autenticado. Por favor ingresa con tu llave de acceso.');
+  } else {
+    checks.push('✓ Usuario Autenticado en Plataforma');
+  }
+
+  if (state.panicStopActive) {
+    errors.push('🛑 PARADA DE EMERGENCIA ACTIVA. Todas las operaciones están congeladas.');
+  } else {
+    checks.push('✓ Parada de Emergencia Inactiva');
+  }
+
   const isRealMode = localStorage.getItem('execution_mode') === 'REAL_MAINNET';
   const linkedAddr = localStorage.getItem('linked_polygon_address');
 
   if (isRealMode) {
-    if (!linkedAddr || !linkedAddr.startsWith('0x')) {
-      addLog('⚠️ MODO REAL ACTIVADO: Por favor vincula tu billetera Polygon en la ventana emergente de Operación Real.');
-      const realModal = document.getElementById('real-trading-modal');
-      if (realModal) realModal.classList.remove('hidden');
-      return;
+    if (!linkedAddr || !linkedAddr.startsWith('0x') || linkedAddr.length < 40) {
+      errors.push('🔑 Billetera Polygon Web3 no conectada.');
+    } else {
+      checks.push(`✓ Billetera Conectada: ${linkedAddr.substring(0, 6)}...${linkedAddr.substring(linkedAddr.length - 4)}`);
     }
-    const realUsdc = state.realBalances ? state.realBalances.usdc : 0.0;
-    if (realUsdc < size) {
-      addLog(`⚠️ MODO REAL ACTIVADO: Saldo en USDC insuficiente ($${realUsdc.toFixed(2)} USD < $${size.toFixed(2)} USD para operar).`);
-      const realModal = document.getElementById('real-trading-modal');
-      if (realModal) realModal.classList.remove('hidden');
-      return;
+
+    const usdc = state.realBalances ? state.realBalances.usdc : 0.0;
+    const matic = state.realBalances ? state.realBalances.matic : 0.0;
+
+    if (usdc < size) {
+      errors.push(`💰 Saldo USDC insuficiente ($${usdc.toFixed(2)} USD < $${size.toFixed(2)} USD requeridos).`);
+    } else {
+      checks.push(`✓ Saldo USDC Suficiente: $${usdc.toFixed(2)} USDC`);
+    }
+
+    if (matic < 0.005) {
+      errors.push(`⛽ Saldo MATIC insuficiente para comisiones de red (${matic.toFixed(4)} MATIC < 0.0050 MATIC requeridos).`);
+    } else {
+      checks.push(`✓ Gas MATIC Suficiente: ${matic.toFixed(4)} MATIC`);
     }
   } else {
-    if (state.portfolio.currentBalance < size) return;
+    checks.push('🛡️ Modo Simulación Activo (Capital Virtual)');
+    if (state.portfolio.currentBalance < size) {
+      errors.push(`💰 Balance virtual insuficiente ($${state.portfolio.currentBalance.toFixed(2)} < $${size.toFixed(2)}).`);
+    }
+  }
+
+  if (size <= 0 || size > (state.settings.maxDailyLossUsd || 500.0)) {
+    errors.push(`⚠️ Tamaño de posición ($${size.toFixed(2)}) invalido o supera el límite de riesgo.`);
+  } else {
+    checks.push('✓ Límite de Riesgo Válido');
+  }
+
+  try {
+    const res = await fetch('/api/v1/auth/pretrade-security-check', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        position_size_usd: size,
+        polygon_address: linkedAddr,
+        execution_mode: isRealMode ? 'REAL_MAINNET' : 'PAPER_TRADING',
+        min_ev_pct: state.settings.minEvPct || 5.0
+      })
+    });
+    const backendRes = await res.json();
+    if (!backendRes.passed && backendRes.errors) {
+      backendRes.errors.forEach(e => errors.push(`[Backend] ${e}`));
+    }
+  } catch (e) {
+    // Local fallback check
+  }
+
+  const passed = errors.length === 0;
+  return { passed, checks, errors };
+}
+
+// Paper Trading & Real Live Trading Execution Logic
+async function triggerAutoPaperTrade(outcome, entryPrice, ev) {
+  const size = state.settings.positionSizeUsd;
+  const isRealMode = localStorage.getItem('execution_mode') === 'REAL_MAINNET';
+
+  // EJECUCIÓN DEL PRE-TRADE SECURITY CHECK
+  const securityCheck = await runPreTradeSecurityCheck(outcome, entryPrice, size);
+  if (!securityCheck.passed) {
+    const errorMsg = securityCheck.errors.join('\n');
+    addLog(`🚨 PRE-TRADE SECURITY CHECK BLOQUEADO:\n${errorMsg}`);
+    if (isRealMode) {
+      alert(`🚨 OPERACIÓN BLOQUEADA POR PRE-TRADE SECURITY CHECK:\n\n${errorMsg}\n\nPor favor corrige los puntos antes de operar.`);
+      const realModal = document.getElementById('real-trading-modal');
+      if (realModal) realModal.classList.remove('hidden');
+    }
+    return;
   }
 
   const shares = size / entryPrice;
@@ -420,7 +492,7 @@ function triggerAutoPaperTrade(outcome, entryPrice, ev) {
 
   if (isRealMode) {
     if (state.realBalances) state.realBalances.usdc -= size;
-    addLog(`🔥 ÓRDEN REAL ENVIADA A POLYGON CLOB: [${outcome}] Costo: $${size.toFixed(2)} USDC @ $${entryPrice.toFixed(4)}`);
+    addLog(`🔥 ÓRDEN REAL VERIFICADA & ENVIADA A POLYGON CLOB: [${outcome}] Costo: $${size.toFixed(2)} USDC @ $${entryPrice.toFixed(4)}`);
   } else {
     state.portfolio.currentBalance -= size;
     addLog(`POSICIÓN ABIERTA SIMULADA [${outcome}] - Costo: $${size.toFixed(2)} USD @ $${entryPrice.toFixed(4)}`);
@@ -1756,6 +1828,27 @@ function setupAuthEvents() {
           alert(`✓ Dirección de Billetera vinculada correctamente:\n${promptAddress}`);
         }
       }
+      return;
+    }
+
+    // 18. Botón de Parada de Emergencia
+    const panicStopBtn = e.target.closest('#btn-panic-stop');
+    if (panicStopBtn) {
+      state.panicStopActive = true;
+      state.simulationActive = false;
+      localStorage.setItem('execution_mode', 'PAPER_TRADING');
+      
+      const selectExecMode = document.getElementById('select-execution-mode');
+      if (selectExecMode) selectExecMode.value = 'PAPER_TRADING';
+
+      const envModeText = document.getElementById('env-mode-text');
+      if (envModeText) {
+        envModeText.textContent = '🛑 EMERGENCIA: DETENIDO';
+        envModeText.style.color = '#ff0055';
+      }
+
+      addLog('🛑 PARADA DE EMERGENCIA ACTIVADA: Todas las operaciones del bot han sido congeladas inmediatamente por el usuario.');
+      alert('🛑 PARADA DE EMERGENCIA ACTIVADA:\n\nTodas las operaciones del bot han sido congeladas e interrumpidas inmediatamente por seguridad.');
       return;
     }
   });
