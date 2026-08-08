@@ -678,6 +678,47 @@ function updateWalletHeaderBadge(address) {
   }
 }
 
+async function queryPolygonBalanceDirect(address) {
+  const rpcs = [
+    "https://rpc.ankr.com/polygon",
+    "https://1rpc.io/matic",
+    "https://polygon-bor-rpc.publicnode.com",
+    "https://polygon-rpc.com"
+  ];
+  const cleanAddr = address.toLowerCase().replace('0x', '').padStart(64, '0');
+  const dataCall = '0x70a08231' + cleanAddr;
+
+  for (const rpc of rpcs) {
+    try {
+      const bodyMatic = JSON.stringify({ jsonrpc: "2.0", method: "eth_getBalance", params: [address, "latest"], id: 1 });
+      const bodyUsdcNat = JSON.stringify({ jsonrpc: "2.0", method: "eth_call", params: [{ to: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359", data: dataCall }, "latest"], id: 2 });
+      const bodyUsdcBrg = JSON.stringify({ jsonrpc: "2.0", method: "eth_call", params: [{ to: "0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174", data: dataCall }, "latest"], id: 3 });
+
+      const [r1, r2, r3] = await Promise.all([
+        fetch(rpc, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: bodyMatic }).then(r => r.json()),
+        fetch(rpc, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: bodyUsdcNat }).then(r => r.json()),
+        fetch(rpc, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: bodyUsdcBrg }).then(r => r.json())
+      ]);
+
+      const maticHex = r1?.result || "0x0";
+      const usdcNatHex = r2?.result || "0x0";
+      const usdcBrgHex = r3?.result || "0x0";
+
+      const maticVal = parseInt(maticHex, 16) / 1e18;
+      const usdcNatVal = parseInt(usdcNatHex, 16) / 1e6;
+      const usdcBrgVal = parseInt(usdcBrgHex, 16) / 1e6;
+      const totalUsdc = usdcNatVal + usdcBrgVal;
+
+      if (!isNaN(totalUsdc) && !isNaN(maticVal)) {
+        return { usdc_balance: totalUsdc, matic_balance: maticVal, success: true };
+      }
+    } catch (e) {
+      // try next RPC
+    }
+  }
+  return null;
+}
+
 async function fetchLiveWalletBalance(address) {
   const balanceElem = document.getElementById('portfolio-balance');
   const pnlElem = document.getElementById('portfolio-pnl');
@@ -685,7 +726,7 @@ async function fetchLiveWalletBalance(address) {
   const modalMaticElem = document.getElementById('modal-real-matic-val');
   const realWalletInput = document.getElementById('input-real-wallet-address');
 
-  if (!address) return;
+  if (!address || !address.startsWith('0x') || address.length < 40) return;
 
   if (realWalletInput && (!realWalletInput.value || realWalletInput.value === '0x')) {
     realWalletInput.value = address;
@@ -693,35 +734,50 @@ async function fetchLiveWalletBalance(address) {
 
   updateWalletHeaderBadge(address);
 
+  let usdc = 0.0;
+  let matic = 0.0;
+  let fetchedSuccess = false;
+
   try {
     const res = await fetch(`/api/v1/wallet/balance/${address}`);
     const data = await res.json();
-    if (data && data.success) {
-      const usdc = data.usdc_balance || 0.0;
-      const matic = data.matic_balance || 0.0;
-      
-      state.realBalances = { usdc, matic };
-
-      if (modalUsdcElem) modalUsdcElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
-      if (modalMaticElem) modalMaticElem.textContent = `${matic.toFixed(3)} MATIC`;
-
-      const isRealMode = localStorage.getItem('execution_mode') === 'REAL_MAINNET';
-
-      if (balanceElem && isRealMode) {
-        const titleCard = balanceElem.closest('.kpi-card')?.querySelector('.title');
-        if (titleCard) titleCard.textContent = 'PORTFOLIO BILLETERA REAL (POLYGON)';
-
-        balanceElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
-        if (pnlElem) {
-          pnlElem.textContent = `Gas: ${matic.toFixed(3)} MATIC (Real)`;
-          pnlElem.className = 'price-change positive';
-        }
-      }
-      addLog(`💰 Saldo real Polygon cargado: ${usdc.toFixed(2)} USDC | ${matic.toFixed(3)} MATIC`);
-      return;
+    if (data && data.success && (data.usdc_balance > 0 || data.matic_balance > 0)) {
+      usdc = data.usdc_balance || 0.0;
+      matic = data.matic_balance || 0.0;
+      fetchedSuccess = true;
     }
   } catch (err) {
-    console.warn("Error fetching balance via API", err);
+    console.warn("Error fetching balance via API, fallback to direct RPC", err);
+  }
+
+  if (!fetchedSuccess) {
+    const directData = await queryPolygonBalanceDirect(address);
+    if (directData && directData.success) {
+      usdc = directData.usdc_balance;
+      matic = directData.matic_balance;
+      fetchedSuccess = true;
+    }
+  }
+
+  state.realBalances = { usdc, matic };
+
+  if (modalUsdcElem) modalUsdcElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
+  if (modalMaticElem) modalMaticElem.textContent = `${matic.toFixed(3)} MATIC`;
+
+  const isRealMode = localStorage.getItem('execution_mode') === 'REAL_MAINNET';
+
+  if (balanceElem && isRealMode) {
+    const titleCard = balanceElem.closest('.kpi-card')?.querySelector('.title');
+    if (titleCard) titleCard.textContent = 'PORTFOLIO BILLETERA REAL (POLYGON)';
+
+    balanceElem.textContent = `$${usdc.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`;
+    if (pnlElem) {
+      pnlElem.textContent = `Gas: ${matic.toFixed(3)} MATIC (Real)`;
+      pnlElem.className = 'price-change positive';
+    }
+  }
+  if (fetchedSuccess) {
+    addLog(`💰 Saldo real Polygon actualizado: $${usdc.toFixed(2)} USDC | ${matic.toFixed(3)} MATIC`);
   }
 }
 
@@ -1716,5 +1772,18 @@ document.addEventListener('DOMContentLoaded', () => {
   setupEvents();
   renderOrderbook();
   updatePortfolioUI();
-  addLog('Dashboard iniciado correctamente. Modo: Paper Trading (Sombra).');
+
+  // Polling automático de saldos de billetera cada 8 segundos
+  const initialAddr = localStorage.getItem('linked_polygon_address');
+  if (initialAddr) {
+    fetchLiveWalletBalance(initialAddr);
+  }
+  setInterval(() => {
+    const activeAddr = localStorage.getItem('linked_polygon_address');
+    if (activeAddr && activeAddr.startsWith('0x')) {
+      fetchLiveWalletBalance(activeAddr);
+    }
+  }, 8000);
+
+  addLog('Dashboard iniciado correctamente.');
 });
