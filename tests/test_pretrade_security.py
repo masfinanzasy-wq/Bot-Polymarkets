@@ -44,3 +44,12 @@ def test_pretrade_security_check_real_without_wallet():
     data = response.json()
     assert data["passed"] is False
     assert len(data["errors"]) > 0
+
+def test_wallet_balance_live_query():
+    response = client.get("/api/v1/wallet/balance/0x742d35Cc6634C0532925a3b844Bc454e4438f44e")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] is True
+    assert "usdc_balance" in data
+    assert "matic_balance" in data
+
